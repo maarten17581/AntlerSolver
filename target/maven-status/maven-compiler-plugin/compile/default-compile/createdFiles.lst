@@ -1,4 +1,5 @@
-thesis\antlersolver\algorithm\Algorithm.class
-thesis\antlersolver\models\Result.class
-thesis\antlersolver\Main.class
-thesis\antlersolver\utils\MathUtils.class
+thesis\antlersolver\model\Graph.class
+thesis\antlersolver\io\FileReader.class
+thesis\antlersolver\model\Node.class
+thesis\antlersolver\AntlerSolver.class
+thesis\antlersolver\model\Edge.class

@@ -44,7 +44,7 @@
                 <manifest>
                     <addClasspath>true</addClasspath>
                     <classpathPrefix>main/</classpathPrefix>
-                    <mainClass>thesis.antlersolver.Main</mainClass>
+                    <mainClass>thesis.antlersolver.AntlerSolver</mainClass>
                 </manifest>
                 </archive>
             </configuration>
