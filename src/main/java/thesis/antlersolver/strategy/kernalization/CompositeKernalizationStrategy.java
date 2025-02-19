@@ -23,10 +23,16 @@ public class CompositeKernalizationStrategy implements KernalizationStrategy {
         List<Node> solutionSet = new ArrayList<>();
         for(KernalizationStrategy strategy : strategies) {
             Pair<Command, List<Node>> pair = strategy.apply(graph);
+            if(pair == null) {
+                continue;
+            }
             command.commands.add(pair.a);
             solutionSet.addAll(pair.b);
         }
         command.executed = true;
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, solutionSet);
     }
 
@@ -39,6 +45,9 @@ public class CompositeKernalizationStrategy implements KernalizationStrategy {
         while(true) {
             for(KernalizationStrategy strategy : strategies) {
                 Pair<Command, List<Node>> pair = strategy.exhaustiveApply(graph);
+                if(pair == null) {
+                    continue;
+                }
                 command.commands.add(pair.a);
                 solutionSet.addAll(pair.b);
             }
@@ -49,6 +58,9 @@ public class CompositeKernalizationStrategy implements KernalizationStrategy {
             edgecount = graph.edgecount;
         }
         command.executed = true;
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, solutionSet);
     }
 }

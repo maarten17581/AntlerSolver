@@ -22,6 +22,9 @@ public class SelfloopStrategy implements KernalizationStrategy {
             command.commands.add(removeV);
         }
         command.execute();
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, solutionSet);
     }
 

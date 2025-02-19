@@ -21,6 +21,9 @@ public class MultiEdgeStrategy implements KernalizationStrategy {
             command.commands.add(removeE);
         }
         command.execute();
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, new ArrayList<>());
     }
 

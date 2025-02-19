@@ -27,6 +27,9 @@ public class Degree2Strategy implements KernalizationStrategy {
             command.commands.add(edgeNbh);
         }
         command.executed = true;
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, new ArrayList<>());
     }
 

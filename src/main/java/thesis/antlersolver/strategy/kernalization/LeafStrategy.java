@@ -20,6 +20,9 @@ public class LeafStrategy implements KernalizationStrategy {
             command.commands.add(removeV);
         }
         command.execute();
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, new ArrayList<>());
     }
 
@@ -32,6 +35,9 @@ public class LeafStrategy implements KernalizationStrategy {
             command.commands.add(removeV);
         }
         command.executed = true;
+        if(command.commands.isEmpty()) {
+            return null;
+        }
         return new Pair<Command, List<Node>>(command, new ArrayList<>());
     }
 }

@@ -3,7 +3,9 @@ thesis\antlersolver\strategy\kernalization\KernalizationStrategy.class
 thesis\antlersolver\command\CompositeCommand.class
 thesis\antlersolver\model\Node.class
 thesis\antlersolver\command\RemoveEdgeCommand.class
+thesis\antlersolver\strategy\branching\NaiveBranchingStrategy.class
 thesis\antlersolver\strategy\kernalization\IsolatedStrategy.class
+thesis\antlersolver\algorithm\GraphAlgorithm.class
 thesis\antlersolver\strategy\kernalization\Degree2Strategy.class
 thesis\antlersolver\model\Graph.class
 thesis\antlersolver\command\RemoveNodeCommand.class
@@ -15,6 +17,7 @@ thesis\antlersolver\command\Command.class
 thesis\antlersolver\strategy\kernalization\SelfloopStrategy.class
 thesis\antlersolver\strategy\kernalization\LeafStrategy.class
 thesis\antlersolver\command\AddEdgeCommand.class
+thesis\antlersolver\algorithm\GraphAlgorithm$1DFS.class
 thesis\antlersolver\io\FileReader.class
 thesis\antlersolver\AntlerSolver.class
 thesis\antlersolver\model\Edge.class
