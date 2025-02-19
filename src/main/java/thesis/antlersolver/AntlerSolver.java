@@ -2,9 +2,19 @@ package thesis.antlersolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import thesis.antlersolver.io.FileReader;
 import thesis.antlersolver.model.Graph;
+import thesis.antlersolver.model.Node;
+import thesis.antlersolver.strategy.kernalization.CompositeKernalizationStrategy;
+import thesis.antlersolver.strategy.kernalization.Degree2Strategy;
+import thesis.antlersolver.strategy.kernalization.IsolatedStrategy;
+import thesis.antlersolver.strategy.kernalization.KernalizationStrategy;
+import thesis.antlersolver.strategy.kernalization.LeafStrategy;
+import thesis.antlersolver.strategy.kernalization.MultiEdgeStrategy;
+import thesis.antlersolver.strategy.kernalization.SelfloopStrategy;
 
 public class AntlerSolver {
     public static void main(String[] args) {
@@ -12,6 +22,8 @@ public class AntlerSolver {
 			printHelp();
 			return;
 		}
+
+        KernalizationStrategy strategy = new CompositeKernalizationStrategy(new KernalizationStrategy[]{new IsolatedStrategy(), new LeafStrategy(), new Degree2Strategy(), new MultiEdgeStrategy(), new SelfloopStrategy()});
 
         try {
             File input = new File(args[0]);
@@ -21,9 +33,14 @@ public class AntlerSolver {
             } else {
                 graphs[0] = FileReader.readGraph(args[0]);
             }
+            Arrays.sort(graphs, (Graph g1, Graph g2) -> 
+                g1.nodecount == g2.nodecount ? g1.edgecount-g2.edgecount : g1.nodecount-g2.nodecount);
             for(Graph graph : graphs) {
-                System.out.println(graph);
+                System.out.println(graph.name + ", Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount);
+                List<Node> solutionSet = strategy.exhaustiveApply(graph).b;
+                System.out.println("After, Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount + ", FVS size: " + solutionSet.size());
             }
+
         } catch(IOException e) {
             e.printStackTrace();
             return;

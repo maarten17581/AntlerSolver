@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -16,27 +17,39 @@ public class FileReader {
 
         Scanner sc = new Scanner(file);
 
-        ArrayList<Integer> edgeS = new ArrayList<>();
-        ArrayList<Integer> edgeT = new ArrayList<>();
+        List<Integer> edgeS = new ArrayList<>();
+        List<Integer> edgeT = new ArrayList<>();
         Set<Integer> nodes = new HashSet<>();
 
         while (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            if(line.charAt(0) == '#' || line.charAt(0) == '%') {
+            char[] line = sc.nextLine().toCharArray();
+            if(line[0] == '#' || line[0] == '%') {
                 continue;
             }
-            Scanner scline = new Scanner(line);
-            int x = scline.nextInt();
-            int y = scline.nextInt();
+            int x = 0;
+            int y = 0;
+            boolean second = false;
+            for(int i = 0; i < line.length; i++) {
+                if(line[i] == ' ') {
+                    second = true;
+                    continue;
+                }
+                if(!second) {
+                    x *= 10;
+                    x += line[i]-'0';
+                } else {
+                    y *= 10;
+                    y += line[i]-'0';
+                }
+            }
             edgeS.add(x);
             edgeT.add(y);
             nodes.add(x);
             nodes.add(y);
-            scline.close();
         }
         sc.close();
 
-        Graph graph = new Graph(file.getName());
+        Graph graph = new Graph(file.getName().substring(0, file.getName().length()-6));
         for(Integer i : nodes) {
             graph.addNode(i);
         }
@@ -47,7 +60,7 @@ public class FileReader {
     }
 
     public static Graph[] readGraphDir(String dirPath) throws IOException {
-        ArrayList<Graph> graphs = new ArrayList<>();
+        List<Graph> graphs = new ArrayList<>();
         File dir = new File(dirPath);
         if(!dir.isDirectory()) {
             throw new IOException("File "+dirPath+" is not a directory");

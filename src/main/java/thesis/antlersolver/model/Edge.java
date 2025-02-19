@@ -1,12 +1,10 @@
 package thesis.antlersolver.model;
 
-import java.util.Map;
-
 public class Edge {
-    Node s;
-    Node t;
-    int c;
-    Edge backEdge;
+    public Node s;
+    public Node t;
+    public int c;
+    public Edge backEdge;
 
     public Edge(Node s, Node t) {
         this.s = s;
