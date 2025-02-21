@@ -16,11 +16,14 @@ import thesis.antlersolver.strategy.branching.BranchingStrategy;
 import thesis.antlersolver.strategy.branching.NaiveBranchingStrategy;
 import thesis.antlersolver.strategy.kernalization.CompositeKernalizationStrategy;
 import thesis.antlersolver.strategy.kernalization.Degree2Strategy;
+import thesis.antlersolver.strategy.kernalization.EdgeBCCStrategy;
 import thesis.antlersolver.strategy.kernalization.IsolatedStrategy;
 import thesis.antlersolver.strategy.kernalization.KernalizationStrategy;
 import thesis.antlersolver.strategy.kernalization.LeafStrategy;
 import thesis.antlersolver.strategy.kernalization.MultiEdgeStrategy;
 import thesis.antlersolver.strategy.kernalization.SelfloopStrategy;
+import thesis.antlersolver.strategy.kernalization.SingleAntlerStrategy;
+import thesis.antlersolver.strategy.kernalization.SingletonPathAntlerStrategy;
 
 public class AntlerSolver {
     public static void main(String[] args) {
@@ -29,7 +32,16 @@ public class AntlerSolver {
 			return;
 		}
 
-        KernalizationStrategy strategy = new CompositeKernalizationStrategy(new KernalizationStrategy[]{new IsolatedStrategy(), new LeafStrategy(), new Degree2Strategy(), new MultiEdgeStrategy(), new SelfloopStrategy()});
+        KernalizationStrategy strategy = new CompositeKernalizationStrategy(new KernalizationStrategy[]{
+            new IsolatedStrategy(),
+            new LeafStrategy(),
+            new Degree2Strategy(),
+            new MultiEdgeStrategy(),
+            new SelfloopStrategy(),
+            new EdgeBCCStrategy(),
+            new SingleAntlerStrategy(),
+            new SingletonPathAntlerStrategy()
+        });
         BranchingStrategy branchingStrategy = new NaiveBranchingStrategy();
         
         try {
@@ -43,15 +55,15 @@ public class AntlerSolver {
             Arrays.sort(graphs, (Graph g1, Graph g2) -> 
                 g1.nodecount == g2.nodecount ? g1.edgecount-g2.edgecount : g1.nodecount-g2.nodecount);
             for(Graph graph : graphs) {
-                System.out.println(graph.name + ", Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount);
+                //System.out.println(graph.name + ", Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount);
                 List<Node> solutionSet = new ArrayList<>();
-                Pair<Command, List<Node>> startKernel = strategy.apply(graph);
+                Pair<Command, List<Node>> startKernel = strategy.exhaustiveApply(graph);
                 if(startKernel != null) {
                     solutionSet.addAll(startKernel.b);
                 }
                 while(!GraphAlgorithm.isAcyclic(graph)) {
                     Pair<Command, List<Node>> branch = branchingStrategy.apply(graph);
-                    Pair<Command, List<Node>> kernel = strategy.apply(graph);
+                    Pair<Command, List<Node>> kernel = strategy.exhaustiveApply(graph);
                     if(branch != null) {
                         solutionSet.addAll(branch.b);
                     }
@@ -59,8 +71,11 @@ public class AntlerSolver {
                         solutionSet.addAll(kernel.b);
                     }
                 }
-                System.out.println("After, Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount + ", FVS size: " + solutionSet.size());
-                System.out.println("Number of CC: " + GraphAlgorithm.connectedComponents(graph).size() + ", Is FVS solved: " + GraphAlgorithm.isAcyclic(graph));
+                //System.out.println("After, Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount + ", FVS size: " + solutionSet.size());
+                //System.out.println("Number of CC: " + GraphAlgorithm.connectedComponents(graph).size() + ", Is FVS solved: " + GraphAlgorithm.isAcyclic(graph));
+                if(GraphAlgorithm.isAcyclic(graph)) {
+                    System.out.println(graph.name + ", FVS size: " + solutionSet.size());
+                }
             }
 
         } catch(IOException e) {

@@ -3,30 +3,26 @@ package thesis.antlersolver.strategy.kernalization;
 import java.util.ArrayList;
 import java.util.List;
 
-import thesis.antlersolver.command.AddEdgeCommand;
+import thesis.antlersolver.algorithm.GraphAlgorithm;
 import thesis.antlersolver.command.Command;
 import thesis.antlersolver.command.CompositeCommand;
-import thesis.antlersolver.command.RemoveNodeCommand;
+import thesis.antlersolver.command.RemoveEdgeCommand;
+import thesis.antlersolver.model.Edge;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
 
-public class Degree2Strategy implements KernalizationStrategy {
+public class EdgeBCCStrategy implements KernalizationStrategy {
 
     @Override
     public Pair<Command, List<Node>> apply(Graph graph) {
         CompositeCommand command = new CompositeCommand();
-        while(!graph.degree2.isEmpty()) {
-            Node v = graph.degree2.iterator().next();
-            RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
-            Node[] neighbors = v.neighbors.keySet().toArray(new Node[0]);
-            AddEdgeCommand edgeNbh = new AddEdgeCommand(neighbors[0].id, (v.nbhSize > 1 ? neighbors[1] : neighbors[0]).id, graph);
-            removeV.execute();
-            edgeNbh.execute();
-            command.commands.add(removeV);
-            command.commands.add(edgeNbh);
+        List<Edge> bridges = GraphAlgorithm.EdgeBCC(graph);
+        for(Edge e : bridges) {
+            RemoveEdgeCommand removeE = new RemoveEdgeCommand(e.s.id, e.t.id, e.c, graph);
+            command.commands.add(removeE);
         }
-        command.executed = true;
+        command.execute();
         if(command.commands.isEmpty()) {
             return null;
         }

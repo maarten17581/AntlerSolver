@@ -103,12 +103,12 @@ public class CommandTest {
         Command commandAddNode = new AddNodeCommand(10, graph);
         Command command = new CompositeCommand(Arrays.asList(commandRemoveEdge, commandRemoveNode, commandAddEdge, commandAddNode));
         assertEquals(8, graph.nodecount, "Composite Command test 1 failed");
-        assertEquals(14, graph.edgecount, "Composite Command test 1 failed");
+        assertEquals(14, graph.edgecount, "Composite Command test 2 failed");
         command.execute();
-        assertEquals(8, graph.nodecount, "Composite Command test 1 failed");
-        assertEquals(9, graph.edgecount, "Composite Command test 1 failed");
+        assertEquals(8, graph.nodecount, "Composite Command test 3 failed");
+        assertEquals(9, graph.edgecount, "Composite Command test 4 failed");
         command.undo();
-        assertEquals(8, graph.nodecount, "Composite Command test 1 failed");
-        assertEquals(14, graph.edgecount, "Composite Command test 1 failed");
+        assertEquals(8, graph.nodecount, "Composite Command test 5 failed");
+        assertEquals(14, graph.edgecount, "Composite Command test 6 failed");
     }
 }

@@ -223,21 +223,31 @@ public class GraphTest {
     }
 
     @Test
-    public void testMoreThan2Set() {
+    public void testSingleAntlerSet() {
         Graph graph = makeTestGraph();
-        assertEquals(1, graph.multiEdge.size(), "More Than 2 Set test 1 failed");
-        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "More Than 2 Set test 2 failed");
+        assertEquals(1, graph.singleAntler.size(), "Single Antler Set test 1 failed");
+        assertTrue(graph.singleAntler.contains(graph.nodes.get(3)), "Single Antler Set test 2 failed");
+        graph.addEdge(3, 6, 2);
+        assertEquals(1, graph.singleAntler.size(), "Single Antler Set test 3 failed");
+        assertTrue(graph.singleAntler.contains(graph.nodes.get(6)), "Single Antler Set test 4 failed");
+    }
+
+    @Test
+    public void testMultiEdgeSet() {
+        Graph graph = makeTestGraph();
+        assertEquals(1, graph.multiEdge.size(), "Multi Edge Set test 1 failed");
+        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "Multi Edge Set test 2 failed");
         graph.addEdge(3, 6, 1);
-        assertEquals(1, graph.multiEdge.size(), "More Than 2 Set test 3 failed");
-        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "More Than 2 Set test 4 failed");
+        assertEquals(1, graph.multiEdge.size(), "Multi Edge Set test 3 failed");
+        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "Multi Edge Set test 4 failed");
         graph.addEdge(3, 6, 10);
-        assertEquals(2, graph.multiEdge.size(), "More Than 2 Set test 5 failed");
-        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "More Than 2 Set test 6 failed");
-        assertTrue(graph.multiEdge.contains(graph.nodes.get(3).neighbors.get(graph.nodes.get(6))), "More Than 2 Set test 7 failed");
+        assertEquals(2, graph.multiEdge.size(), "Multi Edge Set test 5 failed");
+        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "Multi Edge Set test 6 failed");
+        assertTrue(graph.multiEdge.contains(graph.nodes.get(3).neighbors.get(graph.nodes.get(6))), "Multi Edge Set test 7 failed");
         graph.removeEdge(3, 6, 9);
-        assertEquals(1, graph.multiEdge.size(), "More Than 2 Set test 8 failed");
-        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "More Than 2 Set test 9 failed");
+        assertEquals(1, graph.multiEdge.size(), "Multi Edge Set test 8 failed");
+        assertTrue(graph.multiEdge.contains(graph.nodes.get(4).neighbors.get(graph.nodes.get(5))), "Multi Edge Set test 9 failed");
         graph.removeAllEdges(4, 5);
-        assertEquals(0, graph.multiEdge.size(), "More Than 2 Set test 10 failed");
+        assertEquals(0, graph.multiEdge.size(), "Multi Edge Set test 10 failed");
     }
 }

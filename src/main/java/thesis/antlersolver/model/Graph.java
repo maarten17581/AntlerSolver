@@ -16,6 +16,7 @@ public class Graph {
     public Set<Node> leaves;
     public Set<Node> degree2;
     public Set<Node> selfloop;
+    public Set<Node> singleAntler;
     public Set<Edge> multiEdge;
 
     public Graph(String name) {
@@ -28,6 +29,7 @@ public class Graph {
         leaves = new HashSet<>();
         degree2 = new HashSet<>();
         selfloop = new HashSet<>();
+        singleAntler = new HashSet<>();
         multiEdge = new HashSet<>();
     }
 
@@ -145,6 +147,12 @@ public class Graph {
         }
         if(v.degree == 2 && !selfloop.contains(v)) {
             degree2.add(v);
+        }
+        if(singleAntler.contains(v) && !(v.degree == 3 && v.nbhSize == 2 && !selfloop.contains(v))) {
+            singleAntler.remove(v);
+        }
+        if(v.degree == 3 && v.nbhSize == 2 && !selfloop.contains(v)) {
+            singleAntler.add(v);
         }
     }
 
