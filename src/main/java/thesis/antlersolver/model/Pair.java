@@ -1,7 +1,5 @@
 package thesis.antlersolver.model;
 
-import java.util.Map;
-
 public class Pair<A,B> {
     public final A a;
     public final B b;
@@ -9,6 +7,17 @@ public class Pair<A,B> {
     public Pair(A a, B b) {
         this.a = a;
         this.b = b;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if(!(other instanceof Pair<?,?>)) return false;
+        return a == ((Pair<?,?>)other).a && b == ((Pair<?,?>)other).b;
+    }
+
+    @Override
+    public int hashCode() {
+        return 1000000007*a.hashCode()+b.hashCode();
     }
 
     @Override

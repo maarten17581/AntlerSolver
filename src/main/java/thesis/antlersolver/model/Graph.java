@@ -2,6 +2,7 @@ package thesis.antlersolver.model;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -63,6 +64,42 @@ public class Graph {
         return null;
     }
 
+    public Node addNode(Node v) {
+        if(nodes.get(v.id) == null && v.neighbors.isEmpty()) {
+            nodes.put(v.id, v);
+            nodecount++;
+            nodeIds = Math.max(nodeIds, v.id+1);
+            nodeSetUpdate(v);
+            return v;
+        }
+        return null;
+    }
+
+    public boolean addNodeSet(List<Node> nodeSet) {
+        for(Node v : nodeSet) {
+            if(nodes.get(v.id) != null) return false;
+            for(Edge e : v.neighbors.values()) {
+                if(!nodeSet.contains(e.t) || e.t.neighbors.get(v) != e.backEdge) {
+                    return false;
+                }
+            }
+        }
+        nodecount += nodeSet.size();
+        int totalDegree = 0;
+        for(Node v : nodeSet) {
+            nodes.put(v.id, v);
+            totalDegree += v.degree;
+        }
+        edgecount += totalDegree/2;
+        for(Node v : nodeSet) {
+            nodeIds = Math.max(nodeIds, v.id+1);
+            for(Edge e : v.neighbors.values()) {
+                edgeSetUpdate(e);
+            }
+        }
+        return true;
+    }
+
     public Node addNode() {
         return addNode(nodeIds);
     }
@@ -122,8 +159,6 @@ public class Graph {
         Edge e = s.removeNeighbor(t, c);
         if(e != null) {
             edgecount -= c;
-            nodeSetUpdate(e.s);
-            nodeSetUpdate(e.t);
             edgeSetUpdate(e);
         }
         return e;
@@ -139,7 +174,7 @@ public class Graph {
         if(leaves.contains(v) && v.degree != 1) {
             leaves.remove(v);
         }
-        if(v.degree == 1) {
+        if(v.degree == 1 && !selfloop.contains(v)) {
             leaves.add(v);
         }
         if(degree2.contains(v) && (v.degree != 2 || selfloop.contains(v))) {
@@ -165,9 +200,11 @@ public class Graph {
         }
         if(multiEdge.contains(e) && e.c <= 2) {
             multiEdge.remove(e);
+            multiEdge.remove(e.backEdge);
         }
         if(e.c > 2) {
             multiEdge.add(e);
+            multiEdge.add(e.backEdge);
         }
         nodeSetUpdate(e.s);
         nodeSetUpdate(e.t);

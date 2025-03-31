@@ -10,7 +10,7 @@ public class RemoveNodeCommand implements Command {
     public boolean executed = false;
     public int id;
     public Graph graph;
-    public Node n;
+    public Node v;
     public CompositeCommand edges;
 
     public RemoveNodeCommand(int id, Graph graph) {
@@ -21,8 +21,8 @@ public class RemoveNodeCommand implements Command {
 
     @Override
     public void execute() {
-        n = graph.nodes.get(id);
-        for(Map.Entry<Node, Edge> entry : n.neighbors.entrySet()) {
+        v = graph.nodes.get(id);
+        for(Map.Entry<Node, Edge> entry : v.neighbors.entrySet()) {
             RemoveEdgeCommand command = new RemoveEdgeCommand(id, entry.getKey().id, entry.getValue().c, graph);
             edges.commands.add(command);
         }
@@ -33,7 +33,7 @@ public class RemoveNodeCommand implements Command {
 
     @Override
     public void undo() {
-        graph.addNode(id);
+        graph.addNode(v);
         edges.undo();
         edges.commands.clear();
         executed = false;

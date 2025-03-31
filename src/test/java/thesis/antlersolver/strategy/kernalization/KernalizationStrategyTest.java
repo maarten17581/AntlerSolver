@@ -69,28 +69,44 @@ public class KernalizationStrategyTest {
     @Test
     public void testDegree2Strategy() {
         Graph graph = makeTestGraph();
+        graph.addEdge(1, 6);
+        graph.addNode(8);
+        graph.addNode(9);
+        graph.addEdge(8, 9, 2);
         KernalizationStrategy strategy = new Degree2Strategy();
-        assertEquals(8, graph.nodecount, "Degree 2 Strategy test 1 failed");
+        assertEquals(10, graph.nodecount, "Degree 2 Strategy test 1 failed");
         assertNotEquals(null, graph.nodes.get(0), "Degree 2 Strategy test 2 failed");
+        assertNotEquals(null, graph.nodes.get(6), "Degree 2 Strategy test 3 failed");
+        assertEquals(1, graph.nodes.get(1).neighbors.get(graph.nodes.get(2)).c, "Degree 2 Strategy test 4 failed");
+        assertEquals(null, graph.nodes.get(1).neighbors.get(graph.nodes.get(1)), "Degree 2 Strategy test 5 failed");
         Command command = strategy.apply(graph).a;
-        assertEquals(7, graph.nodecount, "Degree 2 Strategy test 3 failed");
-        assertEquals(null, graph.nodes.get(0), "Degree 2 Strategy test 4 failed");
+        assertEquals(7, graph.nodecount, "Degree 2 Strategy test 6 failed");
+        assertEquals(null, graph.nodes.get(0), "Degree 2 Strategy test 7 failed");
+        assertEquals(null, graph.nodes.get(6), "Degree 2 Strategy test 8 failed");
+        assertEquals(2, graph.nodes.get(1).neighbors.get(graph.nodes.get(2)).c, "Degree 2 Strategy test 9 failed");
+        assertNotEquals(null, graph.nodes.get(1).neighbors.get(graph.nodes.get(1)), "Degree 2 Strategy test 10 failed");
+        if(graph.nodes.containsKey(8)) assertNotEquals(null, graph.nodes.get(8).neighbors.get(graph.nodes.get(8)), "Degree 2 Strategy test 11 failed");
+        if(graph.nodes.containsKey(9)) assertNotEquals(null, graph.nodes.get(9).neighbors.get(graph.nodes.get(9)), "Degree 2 Strategy test 12 failed");
         command.undo();
-        assertEquals(8, graph.nodecount, "Degree 2 Strategy test 5 failed");
-        assertNotEquals(null, graph.nodes.get(0), "Degree 2 Strategy test 6 failed");
+        assertEquals(10, graph.nodecount, "Degree 2 Strategy test 13 failed");
+        assertNotEquals(null, graph.nodes.get(0), "Degree 2 Strategy test 14 failed");
+        assertNotEquals(null, graph.nodes.get(6), "Degree 2 Strategy test 15 failed");
+        assertEquals(1, graph.nodes.get(1).neighbors.get(graph.nodes.get(2)).c, "Degree 2 Strategy test 16 failed");
+        assertEquals(null, graph.nodes.get(1).neighbors.get(graph.nodes.get(1)), "Degree 2 Strategy test 17 failed");
     }
 
     @Test
     public void testMultiEdgeStrategy() {
         Graph graph = makeTestGraph();
+        graph.addEdge(3, 4, 10);
         KernalizationStrategy strategy = new MultiEdgeStrategy();
-        assertEquals(14, graph.edgecount, "Multi Edge Strategy test 1 failed");
+        assertEquals(24, graph.edgecount, "Multi Edge Strategy test 1 failed");
         assertEquals(3, graph.nodes.get(4).neighbors.get(graph.nodes.get(5)).c, "Multi Edge Strategy test 2 failed");
         Command command = strategy.apply(graph).a;
         assertEquals(13, graph.edgecount, "Multi Edge Strategy test 3 failed");
         assertEquals(2, graph.nodes.get(4).neighbors.get(graph.nodes.get(5)).c, "Multi Edge Strategy test 4 failed");
         command.undo();
-        assertEquals(14, graph.edgecount, "Multi Edge Strategy test 5 failed");
+        assertEquals(24, graph.edgecount, "Multi Edge Strategy test 5 failed");
         assertEquals(3, graph.nodes.get(4).neighbors.get(graph.nodes.get(5)).c, "Multi Edge Strategy test 6 failed");
     }
 
@@ -98,7 +114,6 @@ public class KernalizationStrategyTest {
     public void testSelfloopStrategy() {
         Graph graph = makeTestGraph();
         KernalizationStrategy strategy = new SelfloopStrategy();
-        Node v = graph.nodes.get(2);
         assertEquals(8, graph.nodecount, "Selfloop Strategy test 1 failed");
         assertNotEquals(null, graph.nodes.get(2), "Selfloop Strategy test 2 failed");
         Pair<Command, List<Node>> pair = strategy.apply(graph);
@@ -110,7 +125,7 @@ public class KernalizationStrategyTest {
         assertEquals(8, graph.nodecount, "Selfloop Strategy test 5 failed");
         assertNotEquals(null, graph.nodes.get(2), "Selfloop Strategy test 6 failed");
         assertEquals(1, solutionSet.size(), "Selfloop Strategy test 7 failed");
-        assertTrue(solutionSet.contains(v), "Selfloop Strategy test 8 failed");
+        assertTrue(solutionSet.contains(graph.nodes.get(2)), "Selfloop Strategy test 8 failed");
     }
 
     @Test
@@ -131,7 +146,6 @@ public class KernalizationStrategyTest {
     public void testSingleAntlerStrategy() {
         Graph graph = makeTestGraph();
         KernalizationStrategy strategy = new SingleAntlerStrategy();
-        Node v = graph.nodes.get(4);
         assertEquals(8, graph.nodecount, "Single Antler Strategy test 1 failed");
         assertNotEquals(null, graph.nodes.get(3), "Single Antler Strategy test 2 failed");
         assertNotEquals(null, graph.nodes.get(4), "Single Antler Strategy test 3 failed");
@@ -146,17 +160,17 @@ public class KernalizationStrategyTest {
         assertNotEquals(null, graph.nodes.get(3), "Single Antler Strategy test 8 failed");
         assertNotEquals(null, graph.nodes.get(4), "Single Antler Strategy test 9 failed");
         assertEquals(1, solutionSet.size(), "Single Antler Strategy test 10 failed");
-        assertTrue(solutionSet.contains(v), "Single Antler Strategy test 11 failed");
+        assertTrue(solutionSet.contains(graph.nodes.get(4)), "Single Antler Strategy test 11 failed");
     }
 
     @Test
     public void testSingletonPathAntlerStrategy() {
         Graph graph = makeTestGraph();
         KernalizationStrategy strategy = new SingletonPathAntlerStrategy();
-        Node v = graph.nodes.get(4);
         graph.addNode(8);
         graph.addEdge(3, 8);
         graph.addEdge(4, 8, 2);
+        graph.removeEdge(2, 2);
         assertEquals(9, graph.nodecount, "Singleton Path Antler Strategy test 1 failed");
         assertNotEquals(null, graph.nodes.get(4), "Singleton Path Antler Strategy test 2 failed");
         Pair<Command, List<Node>> pair = strategy.apply(graph);
@@ -168,14 +182,27 @@ public class KernalizationStrategyTest {
         assertEquals(9, graph.nodecount, "Single Antler Strategy test 5 failed");
         assertNotEquals(null, graph.nodes.get(4), "Single Antler Strategy test 6 failed");
         assertEquals(1, solutionSet.size(), "Single Antler Strategy test 7 failed");
-        assertTrue(solutionSet.contains(v), "Single Antler Strategy test 8 failed");
+        assertTrue(solutionSet.contains(graph.nodes.get(4)), "Single Antler Strategy test 8 failed");
+
+        Graph graph2 = new Graph("test2");
+        graph2.addNode(0);
+        graph2.addNode(1);
+        graph2.addNode(2);
+        graph2.addNode(3);
+        graph2.addEdge(0, 1);
+        graph2.addEdge(0, 2);
+        graph2.addEdge(0, 3);
+        graph2.addEdge(1, 2);
+        graph2.addEdge(1, 3);
+        graph2.addEdge(2, 3);
+        Pair<Command, List<Node>> pair2 = strategy.apply(graph2);
+        assertEquals(1, pair2.b.size(), "Single Antler Strategy test 9 failed");
     }
 
     @Test
     public void testCompositeKernalizationStrategy() {
         Graph graph = makeTestGraph();
         KernalizationStrategy strategy = new CompositeKernalizationStrategy(new KernalizationStrategy[]{new IsolatedStrategy(), new LeafStrategy(), new Degree2Strategy(), new MultiEdgeStrategy(), new SelfloopStrategy()});
-        Node v = graph.nodes.get(2);
         assertEquals(8, graph.nodecount, "Composite Kernalization Strategy test 1 failed");
         assertEquals(14, graph.edgecount, "Composite Kernalization Strategy test 2 failed");
         Pair<Command, List<Node>> pair = strategy.apply(graph);
@@ -187,15 +214,13 @@ public class KernalizationStrategyTest {
         assertEquals(8, graph.nodecount, "Composite Kernalization Strategy test 5 failed");
         assertEquals(14, graph.edgecount, "Composite Kernalization Strategy test 6 failed");
         assertEquals(1, solutionSet.size(), "Composite Kernalization Strategy test 7 failed");
-        assertTrue(solutionSet.contains(v), "Composite Kernalization Strategy test 8 failed");
+        assertTrue(solutionSet.contains(graph.nodes.get(2)), "Composite Kernalization Strategy test 8 failed");
     }
 
     @Test
     public void testExhaustiveCompositeKernalizationStrategy() {
         Graph graph = makeTestGraph();
         KernalizationStrategy strategy = new CompositeKernalizationStrategy(new KernalizationStrategy[]{new IsolatedStrategy(), new LeafStrategy(), new Degree2Strategy(), new MultiEdgeStrategy(), new SelfloopStrategy()});
-        Node v1 = graph.nodes.get(2);
-        Node v2 = graph.nodes.get(4);
         assertEquals(8, graph.nodecount, "Exhaustive Composite Kernalization Strategy test 1 failed");
         assertEquals(14, graph.edgecount, "Exhaustive Composite Kernalization Strategy test 2 failed");
         Pair<Command, List<Node>> pair = strategy.exhaustiveApply(graph);
@@ -207,6 +232,6 @@ public class KernalizationStrategyTest {
         assertEquals(8, graph.nodecount, "Exhaustive Composite Kernalization Strategy test 5 failed");
         assertEquals(14, graph.edgecount, "Exhaustive Composite Kernalization Strategy test 6 failed");
         assertEquals(2, solutionSet.size(), "Exhaustive Composite Kernalization Strategy test 7 failed");
-        assertTrue(solutionSet.contains(v1) && solutionSet.contains(v2), "Exhaustive Composite Kernalization Strategy test 8 failed");
+        assertTrue(solutionSet.contains(graph.nodes.get(2)) && solutionSet.contains(graph.nodes.get(4)), "Exhaustive Composite Kernalization Strategy test 8 failed");
     }
 }

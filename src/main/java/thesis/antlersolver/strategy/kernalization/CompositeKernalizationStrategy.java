@@ -40,22 +40,14 @@ public class CompositeKernalizationStrategy implements KernalizationStrategy {
     public Pair<Command, List<Node>> exhaustiveApply(Graph graph) {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
-        int nodecount = graph.nodecount;
-        int edgecount = graph.edgecount;
-        while(true) {
-            for(KernalizationStrategy strategy : strategies) {
-                Pair<Command, List<Node>> pair = strategy.exhaustiveApply(graph);
-                if(pair == null) {
-                    continue;
-                }
-                command.commands.add(pair.a);
-                solutionSet.addAll(pair.b);
+        for(int i = 0; i < strategies.length; i++) {
+            Pair<Command, List<Node>> pair = strategies[i].exhaustiveApply(graph);
+            if(pair == null) {
+                continue;
             }
-            if(nodecount == graph.nodecount && edgecount == graph.edgecount) {
-                break;
-            }
-            nodecount = graph.nodecount;
-            edgecount = graph.edgecount;
+            command.commands.add(pair.a);
+            solutionSet.addAll(pair.b);
+            i = -1;
         }
         command.executed = true;
         if(command.commands.isEmpty()) {

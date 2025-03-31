@@ -1,4 +1,5 @@
 thesis\antlersolver\model\GraphTest.class
+thesis\antlersolver\model\PathAntlerTest.class
 thesis\antlersolver\algorithm\GraphAlgorithmTest.class
 thesis\antlersolver\command\CommandTest.class
 thesis\antlersolver\strategy\kernalization\KernalizationStrategyTest.class

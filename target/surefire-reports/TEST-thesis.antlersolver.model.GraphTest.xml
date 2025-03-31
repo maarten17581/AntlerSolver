@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="thesis.antlersolver.model.GraphTest" time="0.047" tests="16" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="thesis.antlersolver.model.GraphTest" time="0.043" tests="16" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="18"/>
     <property name="sun.cpu.isalist" value="amd64"/>
     <property name="sun.jnu.encoding" value="Cp1252"/>
-    <property name="java.class.path" value="C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\test-classes;C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\classes;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\20202991\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\20202991\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;"/>
+    <property name="java.class.path" value="C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\test-classes;C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\classes;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\20202991\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\20202991\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;C:\Users\20202991\.m2\repository\fvs_wata_orz\fvs_wata_orz\1.0\fvs_wata_orz-1.0.jar;"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
     <property name="sun.arch.data.model" value="64"/>
     <property name="user.variant" value=""/>
@@ -16,9 +16,9 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-18.0.1.1\bin"/>
-    <property name="sun.java.command" value="C:\Users\20202991\AppData\Local\Temp\surefire5794571883329370579\surefirebooter-20250221002725273_3.jar C:\Users\20202991\AppData\Local\Temp\surefire5794571883329370579 2025-02-21T00-27-25_046-jvmRun1 surefire-20250221002725273_1tmp surefire_0-20250221002725273_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\20202991\AppData\Local\Temp\surefire406658455756756965\surefirebooter-20250329131736245_3.jar C:\Users\20202991\AppData\Local\Temp\surefire406658455756756965 2025-03-29T13-17-36_014-jvmRun1 surefire-20250329131736245_1tmp surefire_0-20250329131736245_2tmp"/>
     <property name="jdk.debug" value="release"/>
-    <property name="surefire.test.class.path" value="C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\test-classes;C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\classes;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\20202991\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\20202991\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;"/>
+    <property name="surefire.test.class.path" value="C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\test-classes;C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\classes;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\20202991\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\20202991\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;C:\Users\20202991\.m2\repository\fvs_wata_orz\fvs_wata_orz\1.0\fvs_wata_orz-1.0.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="user.home" value="C:\Users\20202991"/>
     <property name="user.language" value="en"/>
@@ -31,7 +31,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\20202991\AppData\Local\Temp\surefire5794571883329370579\surefirebooter-20250221002725273_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\20202991\AppData\Local\Temp\surefire406658455756756965\surefirebooter-20250329131736245_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="18.0.1.1+2-6"/>
@@ -57,20 +57,20 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="62.0"/>
   </properties>
-  <testcase name="testLeaveSet" classname="thesis.antlersolver.model.GraphTest" time="0.002"/>
-  <testcase name="testGraphConstructor" classname="thesis.antlersolver.model.GraphTest" time="0.009"/>
-  <testcase name="testIsolatedSet" classname="thesis.antlersolver.model.GraphTest" time="0.008"/>
-  <testcase name="testAddEdge" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
+  <testcase name="testLeaveSet" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
+  <testcase name="testGraphConstructor" classname="thesis.antlersolver.model.GraphTest" time="0.006"/>
+  <testcase name="testIsolatedSet" classname="thesis.antlersolver.model.GraphTest" time="0.002"/>
+  <testcase name="testAddEdge" classname="thesis.antlersolver.model.GraphTest" time="0.002"/>
   <testcase name="testAddNode" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
   <testcase name="testSingleAntlerSet" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
   <testcase name="testDegree2Set" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
-  <testcase name="testNodeDegree" classname="thesis.antlersolver.model.GraphTest" time="0.002"/>
-  <testcase name="testNodeRemove" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
+  <testcase name="testNodeDegree" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
+  <testcase name="testNodeRemove" classname="thesis.antlersolver.model.GraphTest" time="0.007"/>
   <testcase name="testSelfloopSet" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
   <testcase name="testEdgeCount" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
-  <testcase name="testNodeCount" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
+  <testcase name="testNodeCount" classname="thesis.antlersolver.model.GraphTest" time="0.0"/>
   <testcase name="testEdgeNumber" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
-  <testcase name="testMultiEdgeSet" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
+  <testcase name="testMultiEdgeSet" classname="thesis.antlersolver.model.GraphTest" time="0.0"/>
   <testcase name="testEdgeRemove" classname="thesis.antlersolver.model.GraphTest" time="0.0"/>
   <testcase name="testNodeNbh" classname="thesis.antlersolver.model.GraphTest" time="0.001"/>
 </testsuite>

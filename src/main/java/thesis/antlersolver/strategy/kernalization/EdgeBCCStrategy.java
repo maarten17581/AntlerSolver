@@ -17,7 +17,7 @@ public class EdgeBCCStrategy implements KernalizationStrategy {
     @Override
     public Pair<Command, List<Node>> apply(Graph graph) {
         CompositeCommand command = new CompositeCommand();
-        List<Edge> bridges = GraphAlgorithm.EdgeBCC(graph);
+        List<Edge> bridges = GraphAlgorithm.edgeBCC(graph);
         for(Edge e : bridges) {
             RemoveEdgeCommand removeE = new RemoveEdgeCommand(e.s.id, e.t.id, e.c, graph);
             command.commands.add(removeE);
