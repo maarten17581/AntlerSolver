@@ -31,11 +31,7 @@ public class RemoveEdgeCommand implements Command {
 
     @Override
     public void undo() {
-        if(e.c == c) {
-            graph.addEdge(e);
-        } else {
-            graph.addEdge(sid, tid, c);
-        }
+        graph.addEdge(sid, tid, c);
         executed = true;
     }
 }

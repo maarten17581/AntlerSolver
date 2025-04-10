@@ -250,4 +250,45 @@ public class GraphTest {
         graph.removeAllEdges(4, 5);
         assertEquals(0, graph.multiEdge.size(), "Multi Edge Set test 10 failed");
     }
+
+    @Test
+    public void testF() {
+        Graph graph = makeTestGraph();
+        graph.addToF(3);
+        graph.addToF(graph.nodes.get(4));
+        assertTrue(graph.nodes.get(3).isF(), "F test 1 failed");
+        assertTrue(graph.nodes.get(4).isF(), "F test 2 failed");
+        graph.removeFromF(3);
+        graph.removeFromF(graph.nodes.get(4));
+        assertFalse(graph.nodes.get(3).isF(), "F test 3 failed");
+        assertFalse(graph.nodes.get(4).isF(), "F test 4 failed");
+    }
+
+    @Test
+    public void testBetweenF() {
+        Graph graph = makeTestGraph();
+        graph.addToF(0);
+        graph.addToF(1);
+        assertEquals(1, graph.betweenF.size(), "Between F test 1 failed");
+        graph.addToF(5);
+        assertEquals(2, graph.betweenF.size(), "Between F test 2 failed");
+        graph.removeEdge(0, 1);
+        assertEquals(1, graph.betweenF.size(), "Between F test 3 failed");
+        graph.removeFromF(1);
+        assertEquals(0, graph.betweenF.size(), "Between F test 4 failed");
+    }
+
+    @Test
+    public void testDoubleToF() {
+        Graph graph = makeTestGraph();
+        graph.addToF(0);
+        graph.addToF(1);
+        assertEquals(0, graph.doubleToF.size(), "Between F test 1 failed");
+        graph.addToF(5);
+        assertEquals(2, graph.doubleToF.size(), "Between F test 2 failed");
+        graph.removeEdge(2, 5);
+        assertEquals(1, graph.doubleToF.size(), "Between F test 3 failed");
+        graph.removeFromF(5);
+        assertEquals(0, graph.doubleToF.size(), "Between F test 4 failed");
+    }
 }

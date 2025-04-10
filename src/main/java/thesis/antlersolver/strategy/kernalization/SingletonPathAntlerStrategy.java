@@ -21,7 +21,7 @@ public class SingletonPathAntlerStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> toBeRemoved = new HashSet<>();
-        List<PathAntler> pathAntlers = GraphAlgorithm.getSingletonPathAntlers(graph);
+        List<PathAntler> pathAntlers = GraphAlgorithm.getSingletonPathAntlers(graph, true);
         for(PathAntler pathAntler : pathAntlers) {
             if(pathAntler.getA().isEmpty()) continue;
             Node a = pathAntler.getA().iterator().next();

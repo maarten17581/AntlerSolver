@@ -17,9 +17,11 @@ import thesis.antlersolver.model.Pair;
 public class KAntlerStrategy implements KernalizationStrategy {
 
     public final int k;
+    public final boolean checkF;
 
-    public KAntlerStrategy(int k) {
+    public KAntlerStrategy(int k, boolean checkF) {
         this.k = k;
+        this.checkF = checkF;
     }
 
     @Override
@@ -27,7 +29,7 @@ public class KAntlerStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> toBeRemoved = new HashSet<>();
-        List<FVC> fvcs = GraphAlgorithm.findKAntlers(k, graph);
+        List<FVC> fvcs = GraphAlgorithm.findKAntlers(k, graph, checkF);
         for(FVC fvc : fvcs) {
             if(fvc.getA().isEmpty()) continue;
             for(Node a : fvc.getA()) {
@@ -57,7 +59,7 @@ public class KAntlerStrategy implements KernalizationStrategy {
             new MultiEdgeStrategy(),
             new SelfloopStrategy(),
             new SingleAntlerStrategy(),
-            new KPathAntlerStrategy(k, true),
+            new KPathAntlerStrategy(k, true, checkF),
         });
         while(true) {
             Pair<Command, List<Node>> requirementPair = requirementStrategy.exhaustiveApply(graph);

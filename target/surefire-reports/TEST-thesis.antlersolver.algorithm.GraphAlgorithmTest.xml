@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.207" tests="10" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.203" tests="10" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="18"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -16,7 +16,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-18.0.1.1\bin"/>
-    <property name="sun.java.command" value="C:\Users\20202991\AppData\Local\Temp\surefire406658455756756965\surefirebooter-20250329131736245_3.jar C:\Users\20202991\AppData\Local\Temp\surefire406658455756756965 2025-03-29T13-17-36_014-jvmRun1 surefire-20250329131736245_1tmp surefire_0-20250329131736245_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\20202991\AppData\Local\Temp\surefire1663321723691442436\surefirebooter-20250410115023618_3.jar C:\Users\20202991\AppData\Local\Temp\surefire1663321723691442436 2025-04-10T11-50-23_345-jvmRun1 surefire-20250410115023618_1tmp surefire_0-20250410115023618_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\test-classes;C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\target\classes;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\20202991\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\20202991\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\20202991\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\20202991\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;C:\Users\20202991\.m2\repository\fvs_wata_orz\fvs_wata_orz\1.0\fvs_wata_orz-1.0.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -31,7 +31,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\20202991\AppData\Local\Temp\surefire406658455756756965\surefirebooter-20250329131736245_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\20202991\AppData\Local\Temp\surefire1663321723691442436\surefirebooter-20250410115023618_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="18.0.1.1+2-6"/>
@@ -57,24 +57,14 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="62.0"/>
   </properties>
-  <testcase name="testNaiveFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.063"/>
-  <testcase name="testSmartDisjointFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.005"/>
-  <testcase name="testIsAcyclic" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.01"/>
-  <testcase name="testKAntlers" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.051">
-    <system-out><![CDATA[2 -> 8, 13, 21
-3 -> 8, 21, 35
-4 -> 8, 25, 35
-]]></system-out>
-  </testcase>
-  <testcase name="testSmartFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.004">
-    <system-err><![CDATA[selfLoop: 7 -> 6
-deg2: 6 -> 0
-reduction finished
-]]></system-err>
-  </testcase>
-  <testcase name="testKPathAntlers" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.021"/>
-  <testcase name="testSingletonPathAntlers" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.001"/>
-  <testcase name="testNaiveDisjointFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.011"/>
+  <testcase name="testNaiveFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.069"/>
+  <testcase name="testSmartDisjointFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.006"/>
+  <testcase name="testIsAcyclic" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.002"/>
+  <testcase name="testKAntlers" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.042"/>
+  <testcase name="testSmartFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.002"/>
+  <testcase name="testKPathAntlers" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.023"/>
+  <testcase name="testSingletonPathAntlers" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.002"/>
+  <testcase name="testNaiveDisjointFVS" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.019"/>
   <testcase name="testConnectedComponents" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.001"/>
-  <testcase name="testEdgeBCC" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.003"/>
+  <testcase name="testEdgeBCC" classname="thesis.antlersolver.algorithm.GraphAlgorithmTest" time="0.002"/>
 </testsuite>

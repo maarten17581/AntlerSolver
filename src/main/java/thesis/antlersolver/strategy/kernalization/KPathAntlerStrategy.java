@@ -18,10 +18,12 @@ public class KPathAntlerStrategy implements KernalizationStrategy {
 
     public final int k;
     public final boolean onlyLengthCheck;
+    public final boolean checkF;
 
-    public KPathAntlerStrategy(int k, boolean onlyLengthCheck) {
+    public KPathAntlerStrategy(int k, boolean onlyLengthCheck, boolean checkF) {
         this.k = k;
         this.onlyLengthCheck = onlyLengthCheck;
+        this.checkF = checkF;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class KPathAntlerStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> toBeRemoved = new HashSet<>();
-        List<PathAntler> pathAntlers = GraphAlgorithm.getKPathAntlers(k, graph, onlyLengthCheck);
+        List<PathAntler> pathAntlers = GraphAlgorithm.getKPathAntlers(k, graph, onlyLengthCheck, checkF);
         for(PathAntler pathAntler : pathAntlers) {
             if(pathAntler.getA().isEmpty()) continue;
             for(Node a : pathAntler.getA()) {

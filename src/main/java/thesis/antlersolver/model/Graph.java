@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 
@@ -19,6 +20,8 @@ public class Graph {
     public Set<Node> selfloop;
     public Set<Node> singleAntler;
     public Set<Edge> multiEdge;
+    public Set<Edge> betweenF;
+    public Set<Edge> doubleToF;
 
     public Graph(String name) {
         this.name = name;
@@ -32,6 +35,8 @@ public class Graph {
         selfloop = new HashSet<>();
         singleAntler = new HashSet<>();
         multiEdge = new HashSet<>();
+        betweenF = new HashSet<>();
+        doubleToF = new HashSet<>();
     }
 
     public Graph(String name, int size) {
@@ -164,6 +169,58 @@ public class Graph {
         return e;
     }
 
+    public void addToF(int id) {
+        nodes.get(id).setToF();
+        for(Edge e : nodes.get(id).neighbors.values()) {
+            if(e.t.isF() && e.c <= 1) {
+                betweenF.add(e);
+            }
+            if(e.c >= 2) {
+                doubleToF.add(e);
+            }
+        }
+    }
+
+    public void addToF(Node v) {
+        v.setToF();
+        for(Edge e : v.neighbors.values()) {
+            if(e.t.isF() && e.c <= 1) {
+                betweenF.add(e);
+            }
+            if(e.c >= 2) {
+                doubleToF.add(e);
+            }
+        }
+    }
+
+    public void removeFromF(int id) {
+        nodes.get(id).removeFromF();
+        for(Edge e : nodes.get(id).neighbors.values()) {
+            if(e.t.isF()) {
+                betweenF.remove(e);
+                betweenF.remove(e.backEdge);
+            }
+            if(e.c >= 2) {
+                doubleToF.remove(e);
+                doubleToF.remove(e.backEdge);
+            }
+        }
+    }
+
+    public void removeFromF(Node v) {
+        v.removeFromF();
+        for(Edge e : v.neighbors.values()) {
+            if(e.t.isF()) {
+                betweenF.remove(e);
+                betweenF.remove(e.backEdge);
+            }
+            if(e.c >= 2) {
+                doubleToF.remove(e);
+                doubleToF.remove(e.backEdge);
+            }
+        }
+    }
+
     private void nodeSetUpdate(Node v) {
         if(isolated.contains(v) && v.degree != 0) {
             isolated.remove(v);
@@ -187,7 +244,13 @@ public class Graph {
             singleAntler.remove(v);
         }
         if(v.degree == 3 && v.nbhSize == 2 && !selfloop.contains(v)) {
-            singleAntler.add(v);
+            Edge[] neighbors = v.neighbors.values().toArray(new Edge[0]);
+            Node w = neighbors[0].c > neighbors[1].c ? neighbors[0].t : neighbors[1].t;
+            if(w.isF()) {
+                singleAntler.remove(v);
+            } else {
+                singleAntler.add(v);
+            }
         }
     }
 
@@ -205,6 +268,24 @@ public class Graph {
         if(e.c > 2) {
             multiEdge.add(e);
             multiEdge.add(e.backEdge);
+        }
+        if(betweenF.contains(e) && e.c != 1) {
+            betweenF.remove(e);
+        }
+        if(betweenF.contains(e.backEdge) && e.backEdge.c != 1) {
+            betweenF.remove(e.backEdge);
+        }
+        if(e.c == 1 && e.s.isF() && e.t.isF() && e.s != e.t && !betweenF.contains(e.backEdge)) {
+            betweenF.add(e);
+        }
+        if(doubleToF.contains(e) && e.c < 2) {
+            doubleToF.remove(e);
+        }
+        if(doubleToF.contains(e.backEdge) && e.backEdge.c < 2) {
+            doubleToF.remove(e.backEdge);
+        }
+        if((e.s.isF() && !e.t.isF() || !e.s.isF() && e.t.isF()) && e.c >= 2 && !doubleToF.contains(e.backEdge)) {
+            doubleToF.add(e);
         }
         nodeSetUpdate(e.s);
         nodeSetUpdate(e.t);

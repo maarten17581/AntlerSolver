@@ -71,13 +71,13 @@ public class GraphAlgorithm {
         return subGraph;
     }
 
-    private static boolean isAcyclic_dfs(Node v, Node p, Set<Node> visited) {
+    private static boolean isAcyclic_dfs(Node v, Node p, Set<Node> visited, boolean onlyF) {
         visited.add(v);
         for(Edge e : v.neighbors.values()) {
-            if(e.t == p) continue;
+            if(e.t == p || (!e.t.isF() && onlyF)) continue;
             if(visited.contains(e.t)) return false;
             if(e.c > 1) return false;
-            if(!isAcyclic_dfs(e.t, v, visited)) return false;
+            if(!isAcyclic_dfs(e.t, v, visited, onlyF)) return false;
         }
         return true;
     }
@@ -86,7 +86,16 @@ public class GraphAlgorithm {
         Set<Node> visited = new HashSet<>();
         for(Node v : graph.nodes.values()) {
             if(visited.contains(v)) continue;
-            if(!isAcyclic_dfs(v, null, visited)) return false;
+            if(!isAcyclic_dfs(v, null, visited, false)) return false;
+        }
+        return true;
+    }
+
+    public static boolean isAcyclicInF(Graph graph) {
+        Set<Node> visited = new HashSet<>();
+        for(Node v : graph.nodes.values()) {
+            if(visited.contains(v) || !v.isF()) continue;
+            if(!isAcyclic_dfs(v, null, visited, true)) return false;
         }
         return true;
     }
@@ -257,7 +266,7 @@ public class GraphAlgorithm {
         return bridges;
     }
 
-    public static List<PathAntler> getSingletonPathAntlers(Graph graph) {
+    public static List<PathAntler> getSingletonPathAntlers(Graph graph, boolean checkF) {
         Map<Node, Set<Node>> pathnodes = new HashMap<>();
         for(Node v : graph.nodes.values()) {
             pathnodes.put(v, new HashSet<>());
@@ -265,7 +274,7 @@ public class GraphAlgorithm {
         for(Node v : graph.nodes.values()) {
             if(v.nbhSize <= 3) {
                 for(Edge e : v.neighbors.values()) {
-                    if(v.degree-e.c <= v.nbhSize-1) {
+                    if(v.degree-e.c <= v.nbhSize-1 && !(checkF && e.t.isF())) {
                         pathnodes.get(e.t).add(v);
                     }
                 }
@@ -325,9 +334,9 @@ public class GraphAlgorithm {
         return hash;
     }
 
-    public static List<PathAntler> getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck) {
+    public static List<PathAntler> getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck, boolean checkF) {
         if(k == 1) {
-            List<PathAntler> singlePathAntlers = getSingletonPathAntlers(graph);
+            List<PathAntler> singlePathAntlers = getSingletonPathAntlers(graph, checkF);
             List<PathAntler> nonEmptyPathAntlers = new ArrayList<>();
             for(PathAntler pathAntler : singlePathAntlers) {
                 if(!pathAntler.getA().isEmpty()) {
@@ -340,10 +349,7 @@ public class GraphAlgorithm {
                 return nonEmptyPathAntlers;
             }
         }
-        List<PathAntler> prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck);
-        if(graph.name.equals("c6000")) {
-            System.out.println(k+" -> "+prevPathAntlers.size());
-        }
+        List<PathAntler> prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck, checkF);
         if(!prevPathAntlers.isEmpty() && !prevPathAntlers.get(0).getA().isEmpty()) {
             return prevPathAntlers;
         }
@@ -352,14 +358,49 @@ public class GraphAlgorithm {
             for(int i = 0; i < 2; i++) {
                 Node nextNode = pathAntler.nextnodes[i];
                 if(nextNode == null || pathAntler.extended[i] || graph.selfloop.contains(nextNode)) continue;
-                int nbh = nextNode.nbhSize-1;
-                if(pathAntler.nextnodes[1-i] == nextNode) nbh--;
-                for(Node c : pathAntler.getC()) {
-                    if(nextNode.neighbors.get(c) != null) {
-                        nbh--;
+                Node nbInF = null;
+                boolean possible = true;
+                int nbh = 0;
+                for(Node nb : nextNode.neighbors.keySet()) {
+                    if(pathAntler.getC().contains(nb) || pathAntler.getP().contains(nb)) continue;
+                    nbh++;
+                    if(nb.isF() && nbInF == null && checkF) {
+                        nbInF = nb;
+                        if(nextNode.neighbors.get(nb).c >= 2) {
+                            possible = false;
+                            break;
+                        }
+                    } else if(nb.isF() && checkF) {
+                        possible = false;
+                        break;
                     }
                 }
+                if(!possible) {
+                    pathAntler.extended[i] = true;
+                    continue;
+                }
                 if(nbh + pathAntler.getC().size() == k+1) {
+                    if(nbInF != null) {
+                        pathAntler.extended[i] = true;
+                        PathAntler newPathAntler = new PathAntler(graph);
+                        for(Node u : pathAntler.getC()) {
+                            newPathAntler.addC(u);
+                        }
+                        for(Node w : nextNode.neighbors.keySet()) {
+                            if(pathAntler.getP().contains(w) || pathAntler.getC().contains(w) || nbInF == w) continue;
+                            newPathAntler.addC(w);
+                        }
+                        for(Node u : pathAntler.getP()) {
+                            newPathAntler.addP(u);
+                        }
+                        newPathAntler.endpoints[0] = pathAntler.endpoints[0];
+                        newPathAntler.endpoints[1] = pathAntler.endpoints[1];
+                        newPathAntler.nextnodes[0] = newPathAntler.getC().contains(pathAntler.nextnodes[0]) ? null : pathAntler.nextnodes[0];
+                        newPathAntler.nextnodes[1] = newPathAntler.getC().contains(pathAntler.nextnodes[1]) ? null : pathAntler.nextnodes[1];
+                        newPathAntler.extendP(true);
+                        nextPathAntlers.add(newPathAntler);
+                        continue;
+                    }
                     for(Node v : nextNode.neighbors.keySet()) {
                         if(pathAntler.getP().contains(v) || pathAntler.getC().contains(v) || nextNode.neighbors.get(v).c >= 2) continue;
                         pathAntler.extended[i] = true;
@@ -382,6 +423,27 @@ public class GraphAlgorithm {
                         nextPathAntlers.add(newPathAntler);
                     }
                 } else if(nbh + pathAntler.getC().size() <= k) {
+                    if(nbInF != null) {
+                        pathAntler.extended[i] = true;
+                        PathAntler newPathAntler = new PathAntler(graph);
+                        for(Node u : pathAntler.getC()) {
+                            newPathAntler.addC(u);
+                        }
+                        for(Node w : nextNode.neighbors.keySet()) {
+                            if(pathAntler.getP().contains(w) || pathAntler.getC().contains(w) || nbInF == w) continue;
+                            newPathAntler.addC(w);
+                        }
+                        for(Node u : pathAntler.getP()) {
+                            newPathAntler.addP(u);
+                        }
+                        newPathAntler.endpoints[0] = pathAntler.endpoints[0];
+                        newPathAntler.endpoints[1] = pathAntler.endpoints[1];
+                        newPathAntler.nextnodes[0] = newPathAntler.getC().contains(pathAntler.nextnodes[0]) ? null : pathAntler.nextnodes[0];
+                        newPathAntler.nextnodes[1] = newPathAntler.getC().contains(pathAntler.nextnodes[1]) ? null : pathAntler.nextnodes[1];
+                        newPathAntler.extendP(true);
+                        nextPathAntlers.add(newPathAntler);
+                        continue;
+                    }
                     pathAntler.extended[i] = true;
                     PathAntler newPathAntler = new PathAntler(graph);
                     for(Node u : pathAntler.getC()) {
@@ -421,8 +483,8 @@ public class GraphAlgorithm {
                 }
                 for(int i = (iLoop ? 0 : -2); i < (iLoop ? nbhNodes.size() : -1); i++) {
                     for(int j = (jLoop ? i+1 : -2); j < (jLoop ? nbhNodes.size() : -1); j++) {
-                        if(iLoop && nbhNodes.get(i).neighbors.get(v).c >= 2) continue;
-                        if(jLoop && nbhNodes.get(j).neighbors.get(v).c >= 2) continue;
+                        if(iLoop && (nbhNodes.get(i).neighbors.get(v).c >= 2 || (nbhNodes.get(i).isF() && checkF))) continue;
+                        if(jLoop && (nbhNodes.get(j).neighbors.get(v).c >= 2 || (nbhNodes.get(j).isF() && checkF))) continue;
                         Set<Node> nodeSet = new HashSet<>();
                         for(int l = 0; l < nbhNodes.size(); l++) {
                             if(l == i || l == j) continue;
@@ -488,10 +550,10 @@ public class GraphAlgorithm {
         }
     }
 
-    public static List<FVC> find2Antlers(Graph graph) {
+    public static List<FVC> find2Antlers(Graph graph, boolean checkF) {
         // TODO finish this with actual path antler 1 handling instead of 2
         List<FVC> fvcList = new ArrayList<>();
-        List<PathAntler> singletonPathAntlers = getSingletonPathAntlers(graph);
+        List<PathAntler> singletonPathAntlers = getSingletonPathAntlers(graph, checkF);
         for(PathAntler pathAntler : singletonPathAntlers) {
             if(pathAntler.isCyclic) {
                 fvcList.add(new FVC(graph, new HashSet<>(Arrays.asList(new Node[]{pathAntler.getC().iterator().next(), pathAntler.getP().iterator().next()}))));
@@ -501,35 +563,55 @@ public class GraphAlgorithm {
         return null;
     }
 
-    private static void extendC(Set<Node> c, int i, int k, List<Node> nodes, Set<Set<Node>> extension) {
+    private static void extendC(Set<Node> c, int i, int k, List<Node> nodes, Set<Set<Node>> extension, boolean checkF) {
         if(i >= nodes.size()) return;
         if(c.size() == k) {
             extension.add(new HashSet<>(c));
             return;
         }
-        extendC(c, i+1, k, nodes, extension);
-        c.add(nodes.get(i));
-        extendC(c, i+1, k, nodes, extension);
-        c.remove(nodes.get(i));
+        extendC(c, i+1, k, nodes, extension, checkF);
+        if(!checkF || !nodes.get(i).isF()) {
+            c.add(nodes.get(i));
+            extendC(c, i+1, k, nodes, extension, checkF);
+            c.remove(nodes.get(i));
+        }
     }
 
-    public static List<FVC> findKAntlers(int k, Graph graph) {
+    public static List<FVC> findKAntlers(int k, Graph graph, boolean checkF) {
         // Assumes that no path-antlers of size k exist in the graph for efficiency guarentee
         Set<Set<Node>> Cs = new HashSet<>();
         for(Node v : graph.nodes.values()) {
             if(v.nbhSize <= k+1) {
+                Node nbInF = null;
+                if(checkF) {
+                    boolean possible = true;
+                    for(Edge e : v.neighbors.values()) {
+                        if(e.t.isF() && nbInF == null) {
+                            nbInF = e.t;
+                            if(e.c >= 2) {
+                                possible = false;
+                                break;
+                            }
+                        } else if(e.t.isF()) {
+                            possible = false;
+                            break;
+                        }
+                    }
+                    if(!possible) {
+                        continue;
+                    }
+                }
+                if(nbInF != null) {
+                    Set<Node> c = new HashSet<>(v.neighbors.keySet());
+                    c.remove(nbInF);
+                    Cs.add(c);
+                    continue;
+                }
                 for(Edge e : v.neighbors.values()) {
                     if(e.c >= 2) continue;
                     Set<Node> c = new HashSet<>(v.neighbors.keySet());
                     c.remove(e.t);
                     Cs.add(c);
-                    if(c.size() == 1) {
-                        System.out.println("!!!!!!!!!!!!");
-                        System.out.println(c.iterator().next());
-                        System.out.println(v);
-                        System.out.println(graph.isolated.size() + " " + graph.leaves.size() + " " + graph.degree2.size() + " " + graph.singleAntler.size() + " " + graph.selfloop.size() + " " + graph.multiEdge.size());
-                        System.out.println("!!!!!!!!!!!!");
-                    }
                 }
                 Cs.add(new HashSet<>(v.neighbors.keySet()));
             }
@@ -539,12 +621,11 @@ public class GraphAlgorithm {
         List<Node> nodes = new ArrayList<>(graph.nodes.values());
         for(Set<Node> c : Cs) {
             Set<Set<Node>> extension = new HashSet<>();
-            extendC(c, 0, k, nodes, extension);
+            extendC(c, 0, k, nodes, extension, checkF);
             for(Set<Node> extendedC : extension) {
                 ExtendedCs.put(hashNodes(extendedC), extendedC);
             }
         }
-        System.out.println(k + " -> " + graph.nodecount + ", " + Cs.size() + ", " + ExtendedCs.size());
         List<FVC> nonEmptyFVC = new ArrayList<>();
         for(Set<Node> C : ExtendedCs.values()) {
             FVC fvc = new FVC(graph, C);
@@ -649,12 +730,17 @@ public class GraphAlgorithm {
     }
 
     public static List<Node> smartFVS(int k, Graph graph) {
-        int[][] adj = new int[graph.nodeIds][0];
+        int[][] adj = new int[graph.nodeIds][];
         for(Node v : graph.nodes.values()) {
             adj[v.id] = new int[v.degree];
             int index = 0;
             for(Edge e : v.neighbors.values()) {
                 for(int i = 0; i < e.c; i++) {
+                    if(index >= adj[v.id].length) {
+                        System.out.println(v.id);
+                        System.out.println(Arrays.toString(adj[v.id]));
+                        System.out.println(graph);
+                    }
                     adj[v.id][index] = e.t.id;
                     index++;
                 }
@@ -664,6 +750,7 @@ public class GraphAlgorithm {
         fvs_wata_orz.Graph fvsGraph = new fvs_wata_orz.Graph(adj);
         fvs_wata_orz.Solver solver = new fvs_wata_orz.FPTBranchingSolver();
         fvs_wata_orz.tc.wata.debug.Debug.silent = true;
+        fvs_wata_orz.ReductionRoot.DEBUG = false;
         solver.ub = k;
         solver.solve(fvsGraph);
         List<Node> fvs = new ArrayList<>();
@@ -697,6 +784,7 @@ public class GraphAlgorithm {
         fvs_wata_orz.Graph fvsGraph = new fvs_wata_orz.Graph(adj);
         fvs_wata_orz.FPTBranchingSolver solver = new fvs_wata_orz.FPTBranchingSolver();
         fvs_wata_orz.tc.wata.debug.Debug.silent = true;
+        fvs_wata_orz.ReductionRoot.DEBUG = false;
         fvsGraph.setF(s.id);
         solver.ub = k+1;
         solver.solve(fvsGraph, s.id);

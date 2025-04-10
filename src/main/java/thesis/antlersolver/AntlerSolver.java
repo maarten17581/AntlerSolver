@@ -15,8 +15,6 @@ import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
-import thesis.antlersolver.strategy.branching.BranchingStrategy;
-import thesis.antlersolver.strategy.branching.NaiveBranchingStrategy;
 import thesis.antlersolver.strategy.kernalization.CompositeKernalizationStrategy;
 import thesis.antlersolver.strategy.kernalization.Degree2Strategy;
 import thesis.antlersolver.strategy.kernalization.EdgeBCCStrategy;
@@ -29,6 +27,8 @@ import thesis.antlersolver.strategy.kernalization.MultiEdgeStrategy;
 import thesis.antlersolver.strategy.kernalization.SelfloopStrategy;
 import thesis.antlersolver.strategy.kernalization.SingleAntlerStrategy;
 import thesis.antlersolver.strategy.kernalization.SingletonPathAntlerStrategy;
+import thesis.antlersolver.template.AbstractFVSSolver;
+import thesis.antlersolver.template.MaxDegreeFVSSolver;
 
 public class AntlerSolver {
     public static void main(String[] args) {
@@ -58,13 +58,14 @@ public class AntlerSolver {
             new EdgeBCCStrategy(),
             new SingleAntlerStrategy(),
             new SingletonPathAntlerStrategy(),
-            new KPathAntlerStrategy(2, true),
-            new KAntlerStrategy(2),
+            new KPathAntlerStrategy(2, true, true),
+            new KAntlerStrategy(2, true),
         });
-        BranchingStrategy branchingStrategy = new NaiveBranchingStrategy();
 
         int counter = 0;
         long cummulativeTime = 0;
+        long totalTimer = -System.currentTimeMillis();
+        AbstractFVSSolver solver = new MaxDegreeFVSSolver();
         
         try {
             File input = new File(args[0]);
@@ -77,39 +78,58 @@ public class AntlerSolver {
             Arrays.sort(graphs, (Graph g1, Graph g2) -> 
                 g1.nodecount == g2.nodecount ? g1.edgecount-g2.edgecount : g1.nodecount-g2.nodecount);
             for(Graph graph : graphs) {
-                //if(graph.nodecount > 150 || graph.edgecount > 500) continue;
+                //if(graph.nodecount > 20 || graph.edgecount > 500) continue;
+                long time = -System.currentTimeMillis();
+                List<Node> fvs = solver.solve(graph, -time, 60000);
+                if(fvs == null) {
+                    System.out.println("graph "+graph.name+" failed to compute");
+                    continue;
+                }
+                time += System.currentTimeMillis();
+                cummulativeTime += time;
+                String padding1 = "";
+                String padding2 = "";
+                for(int i = graph.name.length(); i < 50; i++) {
+                    padding1 += " ";
+                }
+                for(int i = (fvs.size()+"").length(); i < 50; i++) {
+                    padding2 += " ";
+                }
+                System.out.println("graph: "+graph.name+padding1+"fvs size: "+fvs.size()+padding2+"time: "+time+" ms");
+                counter++;
+
                 //long testtime = -System.currentTimeMillis();
                 //List<Node> testset = GraphAlgorithm.smartFVS(graph);
                 //testtime += System.currentTimeMillis();
-                long time = -System.currentTimeMillis();
-                System.out.println(graph.name);
-                List<Node> solutionSet = new ArrayList<>();
-                Pair<Command, List<Node>> startKernel = strategy.exhaustiveApply(graph);
-                if(startKernel != null) {
-                    solutionSet.addAll(startKernel.b);
-                }
+                // long time = -System.currentTimeMillis();
+                // System.out.println(graph.name);
+                // List<Node> solutionSet = new ArrayList<>();
+                // Pair<Command, List<Node>> startKernel = strategy.exhaustiveApply(graph);
+                // if(startKernel != null) {
+                //     solutionSet.addAll(startKernel.b);
+                // }
                 // List<PathAntler> pathAntlers2 = GraphAlgorithm.getKPathAntlers(2, graph, true);
                 // System.out.println("Number of 2 path anthers "+pathAntlers2.size()+". Are empty: "+(pathAntlers2.isEmpty() ? "-" : (pathAntlers2.get(0).getA().isEmpty())));
                 // List<PathAntler> pathAntlers3 = GraphAlgorithm.getKPathAntlers(3, graph, true);
                 // System.out.println("Number of 3 path anthers "+pathAntlers3.size()+". Are empty: "+(pathAntlers3.isEmpty() ? "-" : (pathAntlers3.get(0).getA().isEmpty())));
                 // List<PathAntler> pathAntlers4 = GraphAlgorithm.getKPathAntlers(4, graph, true);
                 // System.out.println("Number of 4 path anthers "+pathAntlers4.size()+". Are empty: "+(pathAntlers4.isEmpty() ? "-" : (pathAntlers4.get(0).getA().isEmpty())));
-                List<Graph> graphComponents = GraphAlgorithm.connectedComponentsGraph(graph);
-                List<List<Node>> cc = GraphAlgorithm.connectedComponents(graph);
-                int maxsize = 0;
-                for(List<Node> component : cc) {
-                    maxsize = Math.max(maxsize, component.size());
-                }
-                if(maxsize <= 100) {
-                    for(Graph graphComponent : graphComponents) {
-                        List<Node> subFVS = GraphAlgorithm.smartFVS(graphComponent);
-                        solutionSet.addAll(subFVS);
-                        for(Node v : subFVS) {
-                            RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
-                            removeV.execute();
-                        }
-                    }
-                }
+                // List<Graph> graphComponents = GraphAlgorithm.connectedComponentsGraph(graph);
+                // List<List<Node>> cc = GraphAlgorithm.connectedComponents(graph);
+                // int maxsize = 0;
+                // for(List<Node> component : cc) {
+                //     maxsize = Math.max(maxsize, component.size());
+                // }
+                // if(maxsize <= 100) {
+                //     for(Graph graphComponent : graphComponents) {
+                //         List<Node> subFVS = GraphAlgorithm.smartFVS(graphComponent);
+                //         solutionSet.addAll(subFVS);
+                //         for(Node v : subFVS) {
+                //             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
+                //             removeV.execute();
+                //         }
+                //     }
+                // }
                 // while(!GraphAlgorithm.isAcyclic(graph)) {
                 //     Pair<Command, List<Node>> branch = branchingStrategy.apply(graph);
                 //     Pair<Command, List<Node>> kernel = strategy.exhaustiveApply(graph);
@@ -122,23 +142,25 @@ public class AntlerSolver {
                 // }
                 // System.out.println("After, Nodes: " + graph.nodecount + ", Edges: " + graph.edgecount + ", FVS size: " + solutionSet.size());
                 // System.out.println("Number of CC: " + GraphAlgorithm.connectedComponents(graph).size() + ", Is FVS solved: " + GraphAlgorithm.isAcyclic(graph));
-                time += System.currentTimeMillis();
-                System.out.println("Time: "+time);
-                if(GraphAlgorithm.isAcyclic(graph)) {
-                    counter++;
-                    System.out.println(counter + ": " + graph.name + ", FVS size: " + solutionSet.size() + ", CC: " + cc.size() + ", Max CC size: " + maxsize);
-                    // if(solutionSet.size() != testset.size()) {
-                    //     System.out.println("Graph: "+graph.name+" is wrong, our fvs size: "+solutionSet.size() + ", actual fvs size: "+testset.size());
-                    // }
-                    // cummulativeTime += testtime-time;
-                }
+                // time += System.currentTimeMillis();
+                // System.out.println("Time: "+time);
+                // if(GraphAlgorithm.isAcyclic(graph)) {
+                //     counter++;
+                //     System.out.println(counter + ": " + graph.name + ", FVS size: " + solutionSet.size() + ", CC: " + cc.size() + ", Max CC size: " + maxsize);
+                //     // if(solutionSet.size() != testset.size()) {
+                //     //     System.out.println("Graph: "+graph.name+" is wrong, our fvs size: "+solutionSet.size() + ", actual fvs size: "+testset.size());
+                //     // }
+                //     // cummulativeTime += testtime-time;
+                // }
             }
 
         } catch(IOException e) {
             e.printStackTrace();
             return;
         }
-        System.out.println(counter+" graphs solved, "+cummulativeTime+" ms faster");
+        totalTimer += System.currentTimeMillis();
+        System.out.println(counter+" graphs solved in "+cummulativeTime+" ms");
+        System.out.println("Total running time of "+totalTimer);
     }
 
     private static void printHelp() {

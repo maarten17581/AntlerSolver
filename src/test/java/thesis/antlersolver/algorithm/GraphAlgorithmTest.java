@@ -135,7 +135,7 @@ public class GraphAlgorithmTest {
     @Test
     public void testSingletonPathAntlers() {
         Graph graph = makeTestGraph();
-        List<PathAntler> pathAntlers = GraphAlgorithm.getSingletonPathAntlers(graph);
+        List<PathAntler> pathAntlers = GraphAlgorithm.getSingletonPathAntlers(graph, false);
         assertEquals(4, pathAntlers.size(), "Singleton Path Antler test 1 failed");
         assertTrue(pathAntlers.get(0).getC().contains(graph.nodes.get(1)), "Singleton Path Antler test 2 failed");
         assertEquals(1, pathAntlers.get(0).getP().size(), "Singleton Path Antler test 3 failed");
@@ -157,11 +157,11 @@ public class GraphAlgorithmTest {
         graph.addEdge(0, 6);
         graph.addEdge(5, 6);
         graph.removeEdge(2, 2);
-        assertEquals(6, GraphAlgorithm.getKPathAntlers(1, graph, false).size(), "K Path Antler test 1 failed");
-        assertEquals(18, GraphAlgorithm.getKPathAntlers(2, graph, false).size(), "K Path Antler test 2 failed");
-        assertEquals(16, GraphAlgorithm.getKPathAntlers(3, graph, false).size(), "K Path Antler test 3 failed");
-        assertEquals(8, GraphAlgorithm.getKPathAntlers(4, graph, false).size(), "K Path Antler test 4 failed");
-        assertEquals(0, GraphAlgorithm.getKPathAntlers(5, graph, false).size(), "K Path Antler test 5 failed");
+        assertEquals(6, GraphAlgorithm.getKPathAntlers(1, graph, false, false).size(), "K Path Antler test 1 failed");
+        assertEquals(18, GraphAlgorithm.getKPathAntlers(2, graph, false, false).size(), "K Path Antler test 2 failed");
+        assertEquals(16, GraphAlgorithm.getKPathAntlers(3, graph, false, false).size(), "K Path Antler test 3 failed");
+        assertEquals(8, GraphAlgorithm.getKPathAntlers(4, graph, false, false).size(), "K Path Antler test 4 failed");
+        assertEquals(0, GraphAlgorithm.getKPathAntlers(5, graph, false, false).size(), "K Path Antler test 5 failed");
     }
 
     @Test
@@ -171,9 +171,9 @@ public class GraphAlgorithmTest {
         graph.addEdge(5, 6);
         graph.addEdge(3, 5);
         graph.removeEdge(2, 2);
-        assertEquals(3, GraphAlgorithm.findKAntlers(2, graph).size(), "K Antler test 1 failed");
-        assertEquals(6, GraphAlgorithm.findKAntlers(3, graph).size(), "K Antler test 2 failed");
-        assertEquals(0, GraphAlgorithm.findKAntlers(4, graph).size(), "K Antler test 3 failed");
+        assertEquals(3, GraphAlgorithm.findKAntlers(2, graph, false).size(), "K Antler test 1 failed");
+        assertEquals(6, GraphAlgorithm.findKAntlers(3, graph, false).size(), "K Antler test 2 failed");
+        assertEquals(0, GraphAlgorithm.findKAntlers(4, graph, false).size(), "K Antler test 3 failed");
     }
 
     @Test

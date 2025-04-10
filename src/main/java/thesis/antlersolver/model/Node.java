@@ -8,12 +8,26 @@ public class Node {
     public Map<Node, Edge> neighbors;
     public int nbhSize;
     public int degree;
+    public char type;
 
     public Node(int id) {
         this.id = id;
         neighbors = new HashMap<>();
         nbhSize = 0;
         degree = 0;
+        type = '-';
+    }
+
+    public void setToF() {
+        type = 'F';
+    }
+
+    public void removeFromF() {
+        type = '-';
+    }
+
+    public boolean isF() {
+        return type == 'F';
     }
 
     public Edge addNeighbor(Node t, int c) {
