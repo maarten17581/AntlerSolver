@@ -1,0 +1,28 @@
+# Maven target directory
+/target/
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# IDE-specific files (e.g., IntelliJ IDEA, Eclipse, VS Code)
+.idea/
+*.iml
+*.classpath
+*.project
+.settings/
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+/node_modules/
