@@ -40,6 +40,18 @@ public class AntlerSolver {
 			return;
 		}
 
+        long graphTime = -System.currentTimeMillis();
+        for(int i = 0; i < 1000000; i++) {
+            Graph graph = new Graph("test", 10, 0.5);
+            for(int j = 0; j < 5; j++) {
+                Command command = new RemoveNodeCommand(j, graph);
+                command.execute();
+            }
+        }
+        graphTime += System.currentTimeMillis();
+        System.out.println(graphTime);
+        if(true) return;
+
         KernalizationStrategy teststrategy = new CompositeKernalizationStrategy(new KernalizationStrategy[]{
             new IsolatedStrategy(),
             new LeafStrategy(),
