@@ -12,6 +12,7 @@ import thesis.antlersolver.model.Edge;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class CycleWithFStrategy implements KernalizationStrategy {
 
@@ -21,12 +22,16 @@ public class CycleWithFStrategy implements KernalizationStrategy {
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> removedNodes = new HashSet<>();
         for(Edge e : graph.doubleToF) {
+            long time = -System.currentTimeMillis();
             Node v = e.s.isF() ? e.t : e.s;
             if(removedNodes.contains(v)) continue;
             solutionSet.add(v);
             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
             removedNodes.add(v);
             command.commands.add(removeV);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("CycleWithF");
+            //Statistics.getStat().count("CycleWithFTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {
@@ -40,12 +45,16 @@ public class CycleWithFStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         while(!graph.doubleToF.isEmpty()) {
+            long time = -System.currentTimeMillis();
             Edge e = graph.doubleToF.iterator().next();
             Node v = e.s.isF() ? e.t : e.s;
             solutionSet.add(v);
             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
             removeV.execute();
             command.commands.add(removeV);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("CycleWithF");
+            //Statistics.getStat().count("CycleWithFTime", time);
         }
         command.executed = true;
         if(command.commands.isEmpty()) {

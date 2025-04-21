@@ -171,9 +171,9 @@ public class GraphAlgorithmTest {
         graph.addEdge(5, 6);
         graph.addEdge(3, 5);
         graph.removeEdge(2, 2);
-        assertEquals(3, GraphAlgorithm.findKAntlers(2, graph, false).size(), "K Antler test 1 failed");
-        assertEquals(6, GraphAlgorithm.findKAntlers(3, graph, false).size(), "K Antler test 2 failed");
-        assertEquals(0, GraphAlgorithm.findKAntlers(4, graph, false).size(), "K Antler test 3 failed");
+        assertEquals(3, GraphAlgorithm.findKAntlers(2, graph, false, false).size(), "K Antler test 1 failed");
+        assertEquals(6, GraphAlgorithm.findKAntlers(3, graph, false, false).size(), "K Antler test 2 failed");
+        assertEquals(0, GraphAlgorithm.findKAntlers(4, graph, false, false).size(), "K Antler test 3 failed");
     }
 
     @Test

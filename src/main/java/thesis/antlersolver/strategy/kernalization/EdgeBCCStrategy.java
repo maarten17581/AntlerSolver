@@ -11,16 +11,25 @@ import thesis.antlersolver.model.Edge;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class EdgeBCCStrategy implements KernalizationStrategy {
 
     @Override
     public Pair<Command, List<Node>> apply(Graph graph) {
         CompositeCommand command = new CompositeCommand();
+        long computeTime = -System.currentTimeMillis();
         List<Edge> bridges = GraphAlgorithm.edgeBCC(graph);
+        computeTime += System.currentTimeMillis();
+        Statistics.getStat().count("EdgeBCCComputed");
+        Statistics.getStat().count("EdgeBCCComputeTime", computeTime);
         for(Edge e : bridges) {
+            long time = -System.currentTimeMillis();
             RemoveEdgeCommand removeE = new RemoveEdgeCommand(e.s.id, e.t.id, e.c, graph);
             command.commands.add(removeE);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("Bridge");
+            //Statistics.getStat().count("BridgeTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {

@@ -49,7 +49,7 @@ public class FileReader {
         }
         sc.close();
 
-        Graph graph = new Graph(file.getName().substring(0, file.getName().length()-6));
+        Graph graph = new Graph(file.getName().substring(0, file.getName().indexOf('.')));
         for(Integer i : nodes) {
             graph.addNode(i);
         }

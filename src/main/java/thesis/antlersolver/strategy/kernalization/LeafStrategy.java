@@ -9,6 +9,7 @@ import thesis.antlersolver.command.RemoveNodeCommand;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class LeafStrategy implements KernalizationStrategy {
 
@@ -16,8 +17,12 @@ public class LeafStrategy implements KernalizationStrategy {
     public Pair<Command, List<Node>> apply(Graph graph) {
         CompositeCommand command = new CompositeCommand();
         for(Node v : graph.leaves) {
+            long time = -System.currentTimeMillis();
             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
             command.commands.add(removeV);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("Leaves");
+            //Statistics.getStat().count("LeavesTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {
@@ -30,9 +35,13 @@ public class LeafStrategy implements KernalizationStrategy {
     public Pair<Command, List<Node>> exhaustiveApply(Graph graph) {
         CompositeCommand command = new CompositeCommand();
         while(!graph.leaves.isEmpty()) {
+            long time = -System.currentTimeMillis();
             RemoveNodeCommand removeV = new RemoveNodeCommand(graph.leaves.iterator().next().id, graph);
             removeV.execute();
             command.commands.add(removeV);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("Leaves");
+            //Statistics.getStat().count("LeavesTime", time);
         }
         command.executed = true;
         if(command.commands.isEmpty()) {

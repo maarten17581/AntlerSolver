@@ -110,7 +110,7 @@ public class FVC {
         }
     }
 
-    public void computeMaxA() {
+    public void computeMaxA(boolean onlyFlower) {
         A.clear();
         Graph fvsGraph = new Graph(graph.name+":FVC");
         for(Node v : C) {
@@ -134,7 +134,7 @@ public class FVC {
         for(Node v : C) {
             if(GraphAlgorithm.hasFlower(F, v) >= C.size()) {
                 addA(v);
-            } else if(GraphAlgorithm.smartDisjointFVS(fvsGraph.nodes.get(v.id), C.size()-1, fvsGraph) == null) {
+            } else if(!onlyFlower && GraphAlgorithm.smartDisjointFVS(fvsGraph.nodes.get(v.id), C.size()-1, fvsGraph) == null) {
                 addA(v);
             }
         }

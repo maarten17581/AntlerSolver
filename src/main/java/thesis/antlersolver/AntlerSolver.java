@@ -15,6 +15,7 @@ import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
+import thesis.antlersolver.statistics.Statistics;
 import thesis.antlersolver.strategy.kernalization.CompositeKernalizationStrategy;
 import thesis.antlersolver.strategy.kernalization.Degree2Strategy;
 import thesis.antlersolver.strategy.kernalization.EdgeBCCStrategy;
@@ -29,6 +30,7 @@ import thesis.antlersolver.strategy.kernalization.SingleAntlerStrategy;
 import thesis.antlersolver.strategy.kernalization.SingletonPathAntlerStrategy;
 import thesis.antlersolver.template.AbstractFVSSolver;
 import thesis.antlersolver.template.MaxDegreeFVSSolver;
+import thesis.antlersolver.template.OnlyStartFVSSolver;
 
 public class AntlerSolver {
     public static void main(String[] args) {
@@ -59,7 +61,7 @@ public class AntlerSolver {
             new SingleAntlerStrategy(),
             new SingletonPathAntlerStrategy(),
             new KPathAntlerStrategy(2, true, true),
-            new KAntlerStrategy(2, true),
+            new KAntlerStrategy(2, false, true),
         });
 
         int counter = 0;
@@ -77,12 +79,19 @@ public class AntlerSolver {
             }
             Arrays.sort(graphs, (Graph g1, Graph g2) -> 
                 g1.nodecount == g2.nodecount ? g1.edgecount-g2.edgecount : g1.nodecount-g2.nodecount);
-            for(Graph graph : graphs) {
-                //if(graph.nodecount > 20 || graph.edgecount > 500) continue;
+            for(int g = 0; g < graphs.length; g++) {
+                Graph graph = graphs[g];
+                // solver.kernelStep(graph.nodecount, graph).a.undo();
+                // System.out.println("Start stats for "+graph.name);
+                // Statistics.getStat().print();
+                // Statistics.reset();
                 long time = -System.currentTimeMillis();
-                List<Node> fvs = solver.solve(graph, -time, 60000);
+                List<Node> fvs = solver.solve(graph, -time, 1000);
                 if(fvs == null) {
                     System.out.println("graph "+graph.name+" failed to compute");
+                    Statistics.getStat().print();
+                    Statistics.reset();
+                    System.out.println((g+1)+"/"+graphs.length);
                     continue;
                 }
                 time += System.currentTimeMillis();
@@ -96,6 +105,9 @@ public class AntlerSolver {
                     padding2 += " ";
                 }
                 System.out.println("graph: "+graph.name+padding1+"fvs size: "+fvs.size()+padding2+"time: "+time+" ms");
+                Statistics.getStat().print();
+                Statistics.reset();
+                System.out.println((g+1)+"/"+graphs.length);
                 counter++;
 
                 //long testtime = -System.currentTimeMillis();
@@ -160,7 +172,7 @@ public class AntlerSolver {
         }
         totalTimer += System.currentTimeMillis();
         System.out.println(counter+" graphs solved in "+cummulativeTime+" ms");
-        System.out.println("Total running time of "+totalTimer);
+        System.out.println("Total running time of "+totalTimer+" ms");
     }
 
     private static void printHelp() {

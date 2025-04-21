@@ -9,6 +9,7 @@ import thesis.antlersolver.command.RemoveNodeCommand;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class SelfloopStrategy implements KernalizationStrategy {
 
@@ -17,9 +18,13 @@ public class SelfloopStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         for(Node v : graph.selfloop) {
+            long time = -System.currentTimeMillis();
             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
             solutionSet.add(v);
             command.commands.add(removeV);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("SelfLoop");
+            //Statistics.getStat().count("SelfLoopTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {

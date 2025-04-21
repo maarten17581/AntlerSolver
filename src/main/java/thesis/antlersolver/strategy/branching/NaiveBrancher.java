@@ -10,6 +10,7 @@ import thesis.antlersolver.command.RemoveNodeCommand;
 import thesis.antlersolver.command.SetNodeFCommand;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
+import thesis.antlersolver.statistics.Statistics;
 
 public class NaiveBrancher implements Brancher {
 
@@ -31,6 +32,7 @@ public class NaiveBrancher implements Brancher {
     }
 
     public List<Node> next() {
+        Statistics.getStat().count("Branch");
         if(command != null) {
             command.undo();
             command = null;

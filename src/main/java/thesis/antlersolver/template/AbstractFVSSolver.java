@@ -22,6 +22,7 @@ public abstract class AbstractFVSSolver {
             return startPair.b;
         }
         for(int i = 0; i < graph.nodecount; i++) {
+            if(System.currentTimeMillis()-start >= time) return null;
             List<Node> solution = solve(i, graph, start, time);
             if(solution != null) {
                 if(startPair.a != null) {
@@ -38,6 +39,7 @@ public abstract class AbstractFVSSolver {
         if(prune(k, graph)) return null;
         if(GraphAlgorithm.isAcyclic(graph)) return new ArrayList<>();
         if(System.currentTimeMillis()-start >= time) return null;
+        if(canSolveLeaf(k, graph)) return solveLeaf(k, graph);
         Splitter splitter = splitStep(graph);
         if(splitter.graphNum() > 2) {
             List<Node> subcurrent = new ArrayList<>();
@@ -73,10 +75,11 @@ public abstract class AbstractFVSSolver {
         }
     }
 
-    protected abstract Pair<Command, List<Node>> startKernel(Graph graph);
-    protected abstract Brancher branchStep(int k, Graph graph);
-    protected abstract Pair<Command, List<Node>> kernelStep(int k, Graph graph);
-    protected abstract Splitter splitStep(Graph graph);
-    protected abstract boolean prune(int k, Graph graph);
-
+    public abstract Pair<Command, List<Node>> startKernel(Graph graph);
+    public abstract Brancher branchStep(int k, Graph graph);
+    public abstract Pair<Command, List<Node>> kernelStep(int k, Graph graph);
+    public abstract Splitter splitStep(Graph graph);
+    public abstract boolean prune(int k, Graph graph);
+    public abstract boolean canSolveLeaf(int k, Graph graph);
+    public abstract List<Node> solveLeaf(int k, Graph graph);
 }

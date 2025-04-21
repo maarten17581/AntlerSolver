@@ -13,14 +13,17 @@ import thesis.antlersolver.model.FVC;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class KAntlerStrategy implements KernalizationStrategy {
 
     public final int k;
+    public final boolean onlyFlower;
     public final boolean checkF;
 
-    public KAntlerStrategy(int k, boolean checkF) {
+    public KAntlerStrategy(int k, boolean onlyFlower, boolean checkF) {
         this.k = k;
+        this.onlyFlower = onlyFlower;
         this.checkF = checkF;
     }
 
@@ -29,8 +32,13 @@ public class KAntlerStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> toBeRemoved = new HashSet<>();
-        List<FVC> fvcs = GraphAlgorithm.findKAntlers(k, graph, checkF);
+        long computeTime = -System.currentTimeMillis();
+        List<FVC> fvcs = GraphAlgorithm.findKAntlers(k, graph, onlyFlower, checkF);
+        computeTime += System.currentTimeMillis();
+        Statistics.getStat().count(k+"AntlerComputed");
+        Statistics.getStat().count(k+"AntlerComputeTime", computeTime);
         for(FVC fvc : fvcs) {
+            long time = -System.currentTimeMillis();
             if(fvc.getA().isEmpty()) continue;
             for(Node a : fvc.getA()) {
                 if(toBeRemoved.contains(a)) continue;
@@ -40,6 +48,10 @@ public class KAntlerStrategy implements KernalizationStrategy {
             }
             toBeRemoved.addAll(fvc.getF());
             toBeRemoved.addAll(fvc.getC());
+            time += System.currentTimeMillis();
+            Statistics.getStat().count(k+"Antler");
+            Statistics.getStat().count(k+"AntlerSize", fvc.getA().size());
+            //Statistics.getStat().count(k+"AntlerTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {

@@ -2,7 +2,6 @@ package thesis.antlersolver.strategy.branching;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import thesis.antlersolver.command.Command;
@@ -10,6 +9,7 @@ import thesis.antlersolver.command.RemoveNodeCommand;
 import thesis.antlersolver.command.SetNodeFCommand;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
+import thesis.antlersolver.statistics.Statistics;
 
 public class MaxDegreeBrancher implements Brancher {
 
@@ -27,20 +27,21 @@ public class MaxDegreeBrancher implements Brancher {
     }
 
     public List<Node> next() {
+        Statistics.getStat().count("Branch");
         if(command != null) {
             command.undo();
             command = null;
         }
         if(state == 0) {
-            command = new RemoveNodeCommand(v.id, graph);
-            command.execute();
-            state++;
-            return Arrays.asList(new Node[]{v});
-        } else if(state == 1) {
             command = new SetNodeFCommand(v.id, graph);
             command.execute();
             state++;
             return new ArrayList<>();
+        } else if(state == 1) {
+            command = new RemoveNodeCommand(v.id, graph);
+            command.execute();
+            state++;
+            return Arrays.asList(new Node[]{v});
         } else {
             return null;
         }

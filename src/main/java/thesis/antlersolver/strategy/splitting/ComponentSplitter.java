@@ -5,6 +5,7 @@ import java.util.List;
 
 import thesis.antlersolver.algorithm.GraphAlgorithm;
 import thesis.antlersolver.model.Graph;
+import thesis.antlersolver.statistics.Statistics;
 
 public class ComponentSplitter implements Splitter {
 
@@ -18,6 +19,7 @@ public class ComponentSplitter implements Splitter {
     }
 
     public Graph next() {
+        Statistics.getStat().count("Split");
         if(index < graphs.size()) {
             return graphs.get(index++);
         } else {

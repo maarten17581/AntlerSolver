@@ -1,6 +1,8 @@
+thesis\antlersolver\strategy\branching\MaxDegreeConnectedBrancher.class
 thesis\antlersolver\strategy\kernalization\SingleAntlerStrategy.class
 thesis\antlersolver\strategy\kernalization\MultiEdgeStrategy.class
 thesis\antlersolver\strategy\kernalization\KernalizationStrategy.class
+thesis\antlersolver\template\OnlyStartFVSSolver.class
 thesis\antlersolver\command\CompositeCommand.class
 thesis\antlersolver\command\RemoveEdgeCommand.class
 thesis\antlersolver\strategy\kernalization\EdgeBCCStrategy.class
@@ -20,6 +22,7 @@ thesis\antlersolver\strategy\kernalization\KAntlerStrategy.class
 thesis\antlersolver\model\Node.class
 thesis\antlersolver\strategy\kernalization\IsolatedStrategy.class
 thesis\antlersolver\algorithm\GraphAlgorithm.class
+thesis\antlersolver\statistics\Statistics.class
 thesis\antlersolver\strategy\kernalization\ContractFStrategy.class
 thesis\antlersolver\strategy\kernalization\Degree2Strategy.class
 thesis\antlersolver\strategy\kernalization\SingletonPathAntlerStrategy.class
@@ -29,6 +32,7 @@ thesis\antlersolver\model\FVC.class
 thesis\antlersolver\template\AbstractFVSSolver.class
 thesis\antlersolver\command\AddNodeCommand.class
 thesis\antlersolver\strategy\kernalization\CompositeKernalizationStrategy.class
+thesis\antlersolver\strategy\kernalization\IwataKernalizationStepStrategy.class
 thesis\antlersolver\command\Command.class
 thesis\antlersolver\strategy\kernalization\SelfloopStrategy.class
 thesis\antlersolver\strategy\splitting\Splitter.class

@@ -13,6 +13,7 @@ import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
+import thesis.antlersolver.statistics.Statistics;
 
 public class KPathAntlerStrategy implements KernalizationStrategy {
 
@@ -31,8 +32,13 @@ public class KPathAntlerStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> toBeRemoved = new HashSet<>();
+        long computeTime = -System.currentTimeMillis();
         List<PathAntler> pathAntlers = GraphAlgorithm.getKPathAntlers(k, graph, onlyLengthCheck, checkF);
+        computeTime += System.currentTimeMillis();
+        Statistics.getStat().count(k+"PathAntlerComputed");
+        Statistics.getStat().count(k+"PathAntlerComputeTime", computeTime);
         for(PathAntler pathAntler : pathAntlers) {
+            long time = -System.currentTimeMillis();
             if(pathAntler.getA().isEmpty()) continue;
             for(Node a : pathAntler.getA()) {
                 if(toBeRemoved.contains(a)) continue;
@@ -42,6 +48,10 @@ public class KPathAntlerStrategy implements KernalizationStrategy {
             }
             toBeRemoved.addAll(pathAntler.getP());
             toBeRemoved.addAll(pathAntler.getC());
+            time += System.currentTimeMillis();
+            Statistics.getStat().count(k+"PathAntler");
+            Statistics.getStat().count(k+"PathAntlerSize", pathAntler.getA().size());
+            //Statistics.getStat().count(k+"PathAntlerTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {

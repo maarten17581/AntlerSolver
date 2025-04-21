@@ -1,18 +1,15 @@
 package thesis.antlersolver.algorithm;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
-import thesis.antlersolver.command.AddEdgeCommand;
-import thesis.antlersolver.command.AddNodeCommand;
 import thesis.antlersolver.command.Command;
 import thesis.antlersolver.command.CompositeCommand;
 import thesis.antlersolver.command.RemoveNodeCommand;
@@ -22,6 +19,7 @@ import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
+import thesis.antlersolver.statistics.Statistics;
 
 public class GraphAlgorithm {
 
@@ -564,20 +562,20 @@ public class GraphAlgorithm {
     }
 
     private static void extendC(Set<Node> c, int i, int k, List<Node> nodes, Set<Set<Node>> extension, boolean checkF) {
-        if(i >= nodes.size()) return;
         if(c.size() == k) {
             extension.add(new HashSet<>(c));
             return;
         }
-        extendC(c, i+1, k, nodes, extension, checkF);
-        if(!checkF || !nodes.get(i).isF()) {
-            c.add(nodes.get(i));
-            extendC(c, i+1, k, nodes, extension, checkF);
-            c.remove(nodes.get(i));
+        for(int j = i; j < nodes.size(); j++) {
+            if((!checkF || !nodes.get(j).isF()) && !c.contains(nodes.get(j))) {
+                c.add(nodes.get(j));
+                extendC(c, j+1, k, nodes, extension, checkF);
+                c.remove(nodes.get(j));
+            }
         }
     }
 
-    public static List<FVC> findKAntlers(int k, Graph graph, boolean checkF) {
+    public static List<FVC> findKAntlers(int k, Graph graph, boolean onlyFlower, boolean checkF) {
         // Assumes that no path-antlers of size k exist in the graph for efficiency guarentee
         Set<Set<Node>> Cs = new HashSet<>();
         for(Node v : graph.nodes.values()) {
@@ -613,10 +611,11 @@ public class GraphAlgorithm {
                     c.remove(e.t);
                     Cs.add(c);
                 }
-                Cs.add(new HashSet<>(v.neighbors.keySet()));
+                if(v.nbhSize <= k) {
+                    Cs.add(new HashSet<>(v.neighbors.keySet()));
+                }
             }
         }
-        
         Map<Integer, Set<Node>> ExtendedCs = new HashMap<>();
         List<Node> nodes = new ArrayList<>(graph.nodes.values());
         for(Set<Node> c : Cs) {
@@ -629,7 +628,7 @@ public class GraphAlgorithm {
         List<FVC> nonEmptyFVC = new ArrayList<>();
         for(Set<Node> C : ExtendedCs.values()) {
             FVC fvc = new FVC(graph, C);
-            fvc.computeMaxA();
+            fvc.computeMaxA(onlyFlower);
             if(!fvc.getA().isEmpty()) {
                 nonEmptyFVC.add(fvc);
             }
@@ -730,22 +729,23 @@ public class GraphAlgorithm {
     }
 
     public static List<Node> smartFVS(int k, Graph graph) {
-        int[][] adj = new int[graph.nodeIds][];
+        Map<Node, Integer> map = new HashMap<>();
+        Map<Integer, Node> mapBack = new HashMap<>();
         for(Node v : graph.nodes.values()) {
-            adj[v.id] = new int[v.degree];
+            map.put(v, map.size());
+            mapBack.put(map.get(v), v);
+        }
+        int[][] adj = new int[map.size()][0];
+        for(Node v : graph.nodes.values()) {
+            adj[map.get(v)] = new int[v.degree];
             int index = 0;
             for(Edge e : v.neighbors.values()) {
                 for(int i = 0; i < e.c; i++) {
-                    if(index >= adj[v.id].length) {
-                        System.out.println(v.id);
-                        System.out.println(Arrays.toString(adj[v.id]));
-                        System.out.println(graph);
-                    }
-                    adj[v.id][index] = e.t.id;
+                    adj[map.get(v)][index] = map.get(e.t);
                     index++;
                 }
             }
-            Arrays.sort(adj[v.id]);
+            Arrays.sort(adj[map.get(v)]);
         }
         fvs_wata_orz.Graph fvsGraph = new fvs_wata_orz.Graph(adj);
         fvs_wata_orz.Solver solver = new fvs_wata_orz.FPTBranchingSolver();
@@ -758,7 +758,7 @@ public class GraphAlgorithm {
             return null;
         }
         for(int i : solver.res) {
-            fvs.add(graph.nodes.get(i));
+            fvs.add(mapBack.get(i));
         }
         return fvs;
     }
@@ -769,31 +769,37 @@ public class GraphAlgorithm {
 
     public static List<Node> smartDisjointFVS(Node s, int k, Graph graph) {
         if(s.neighbors.get(s) != null) return null;
-        int[][] adj = new int[graph.nodeIds][0];
+        Map<Node, Integer> map = new HashMap<>();
+        Map<Integer, Node> mapBack = new HashMap<>();
         for(Node v : graph.nodes.values()) {
-            adj[v.id] = new int[v.degree];
+            map.put(v, map.size());
+            mapBack.put(map.get(v), v);
+        }
+        int[][] adj = new int[map.size()][0];
+        for(Node v : graph.nodes.values()) {
+            adj[map.get(v)] = new int[v.degree];
             int index = 0;
             for(Edge e : v.neighbors.values()) {
                 for(int i = 0; i < e.c; i++) {
-                    adj[v.id][index] = e.t.id;
+                    adj[map.get(v)][index] = map.get(e.t);
                     index++;
                 }
             }
-            Arrays.sort(adj[v.id]);
+            Arrays.sort(adj[map.get(v)]);
         }
         fvs_wata_orz.Graph fvsGraph = new fvs_wata_orz.Graph(adj);
         fvs_wata_orz.FPTBranchingSolver solver = new fvs_wata_orz.FPTBranchingSolver();
         fvs_wata_orz.tc.wata.debug.Debug.silent = true;
         fvs_wata_orz.ReductionRoot.DEBUG = false;
-        fvsGraph.setF(s.id);
+        fvsGraph.setF(map.get(s));
         solver.ub = k+1;
-        solver.solve(fvsGraph, s.id);
+        solver.solve(fvsGraph, map.get(s));
         List<Node> fvs = new ArrayList<>();
         if(solver.res == null) {
             return null;
         }
         for(int i : solver.res) {
-            fvs.add(graph.nodes.get(i));
+            fvs.add(mapBack.get(i));
         }
         return fvs;
     }

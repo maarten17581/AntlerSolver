@@ -19,6 +19,7 @@ C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\ma
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\kernalization\KPathAntlerStrategy.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\model\PathAntler.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\branching\MaxDegreeBrancher.java
+C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\template\OnlyStartFVSSolver.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\io\FileReader.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\template\NaiveFVSSolver.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\model\Node.java
@@ -32,7 +33,10 @@ C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\ma
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\command\AddEdgeCommand.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\kernalization\SingletonPathAntlerStrategy.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\splitting\ComponentSplitter.java
+C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\branching\MaxDegreeConnectedBrancher.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\branching\NaiveBrancher.java
+C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\kernalization\IwataKernalizationStepStrategy.java
+C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\statistics\Statistics.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\strategy\kernalization\CycleWithFStrategy.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\model\Pair.java
 C:\Users\20202991\Dropbox\My PC (S20202991)\Documents\GitHub\AntlerSolver\src\main\java\thesis\antlersolver\model\Graph.java

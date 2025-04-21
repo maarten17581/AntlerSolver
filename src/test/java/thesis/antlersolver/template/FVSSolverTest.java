@@ -38,6 +38,7 @@ public class FVSSolverTest {
     public void MaxDegreeFVSSolverTest() {
         Random rand = new Random();
         AbstractFVSSolver solver = new MaxDegreeFVSSolver();
+        //for(int run = 0; run < 20; run++) {
         long time = 0;
         int size = 0;
         for(int i = 2; time < testingTime; i++) {
@@ -47,9 +48,41 @@ public class FVSSolverTest {
             time += System.currentTimeMillis()-subtime;
             if(fvs1 == null) continue;
             List<Node> fvs2 = GraphAlgorithm.smartFVS(graph);
+            if(fvs1.size() != fvs2.size()) {
+                System.out.println(graph);
+                System.out.println(fvs1);
+                System.out.println(fvs2);
+            }
             assertEquals(fvs2.size(), fvs1.size(), "Max Degree FVS Solver test " + (i-1) + " failed");
             size = i;
         }
         System.out.println("Max Degree Solver test time: "+time+", until size: "+size);
+        //}
+    }
+
+    @Test
+    public void OnlyStartFVSSolverTest() {
+        Random rand = new Random();
+        AbstractFVSSolver solver = new OnlyStartFVSSolver();
+        //for(int run = 0; run < 20; run++) {
+        long time = 0;
+        int size = 0;
+        for(int i = 2; time < testingTime; i++) {
+            Graph graph = new Graph("test", i, rand.nextDouble());
+            long subtime = System.currentTimeMillis();
+            List<Node> fvs1 = solver.solve(graph, subtime, testingTime-time);
+            time += System.currentTimeMillis()-subtime;
+            if(fvs1 == null) continue;
+            List<Node> fvs2 = GraphAlgorithm.smartFVS(graph);
+            if(fvs1.size() != fvs2.size()) {
+                System.out.println(graph);
+                System.out.println(fvs1);
+                System.out.println(fvs2);
+            }
+            assertEquals(fvs2.size(), fvs1.size(), "Only Start FVS Solver test " + (i-1) + " failed");
+            size = i;
+        }
+        System.out.println("Only Start Solver test time: "+time+", until size: "+size);
+        //}
     }
 }

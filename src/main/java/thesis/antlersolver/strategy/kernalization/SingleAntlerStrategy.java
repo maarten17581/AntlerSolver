@@ -12,6 +12,7 @@ import thesis.antlersolver.model.Edge;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class SingleAntlerStrategy implements KernalizationStrategy {
 
@@ -21,6 +22,7 @@ public class SingleAntlerStrategy implements KernalizationStrategy {
         List<Node> solutionSet = new ArrayList<>();
         Set<Node> toBeRemoved = new HashSet<>();
         for(Node v : graph.singleAntler) {
+            long time = -System.currentTimeMillis();
             if(toBeRemoved.contains(v)) continue;
             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
             Edge[] neighbors = v.neighbors.values().toArray(new Edge[0]);
@@ -32,6 +34,10 @@ public class SingleAntlerStrategy implements KernalizationStrategy {
             command.commands.add(removeV);
             command.commands.add(removeW);
             solutionSet.add(w);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("1Antler");
+            Statistics.getStat().count("1AntlerSize");
+            //Statistics.getStat().count("1AntlerTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {
@@ -45,6 +51,7 @@ public class SingleAntlerStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         List<Node> solutionSet = new ArrayList<>();
         while(!graph.singleAntler.isEmpty()) {
+            long time = -System.currentTimeMillis();
             Node v = graph.singleAntler.iterator().next();
             RemoveNodeCommand removeV = new RemoveNodeCommand(v.id, graph);
             Edge[] neighbors = v.neighbors.values().toArray(new Edge[0]);
@@ -55,6 +62,10 @@ public class SingleAntlerStrategy implements KernalizationStrategy {
             command.commands.add(removeV);
             command.commands.add(removeW);
             solutionSet.add(w);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("1Antler");
+            Statistics.getStat().count("1AntlerSize");
+            //Statistics.getStat().count("1AntlerTime", time);
         }
         command.executed = true;
         if(command.commands.isEmpty()) {

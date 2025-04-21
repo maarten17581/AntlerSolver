@@ -12,6 +12,7 @@ import thesis.antlersolver.model.Edge;
 import thesis.antlersolver.model.Graph;
 import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
+import thesis.antlersolver.statistics.Statistics;
 
 public class MultiEdgeStrategy implements KernalizationStrategy {
 
@@ -20,10 +21,14 @@ public class MultiEdgeStrategy implements KernalizationStrategy {
         CompositeCommand command = new CompositeCommand();
         Set<Edge> backEdgeCheck = new HashSet<>();
         for(Edge e : graph.multiEdge) {
+            long time = -System.currentTimeMillis();
             if(backEdgeCheck.contains(e.backEdge)) continue;
             backEdgeCheck.add(e);
             RemoveEdgeCommand removeE = new RemoveEdgeCommand(e.s.id, e.t.id, e.c-2, graph);
             command.commands.add(removeE);
+            time += System.currentTimeMillis();
+            Statistics.getStat().count("MultiEdge");
+            //Statistics.getStat().count("MultiEdgeTime", time);
         }
         command.execute();
         if(command.commands.isEmpty()) {
