@@ -1,140 +1,149 @@
 package thesis.antlersolver.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import fvs_wata_orz.Graph;
+import fvs_wata_orz.tc.wata.util.Utils;
 import thesis.antlersolver.algorithm.GraphAlgorithm;
 
 public class FVC {
-    private Set<Node> A;
-    private Set<Node> C;
-    private Set<Node> F;
+    private int[] A;
+    private int[] C;
+    private int[] F;
     public Graph graph;
 
-    private static Map<Integer, Integer> hashTableA = new HashMap<>();
-    private static Map<Integer, Integer> hashTableC = new HashMap<>();
-    private static Map<Integer, Integer> hashTableF = new HashMap<>();
-    private static Random rand = new Random();
-
-    public int hash = 0;
-
-    private void updateHash(Node v, char set) {
-        if(set == 'A') {
-            if(hashTableA.get(v.id) == null) {
-                hashTableA.put(v.id, rand.nextInt());
-            }
-            hash ^= hashTableA.get(v.id);
-        } else if(set == 'C') {
-            if(hashTableC.get(v.id) == null) {
-                hashTableC.put(v.id, rand.nextInt());
-            }
-            hash ^= hashTableC.get(v.id);
-        } else if(set == 'F') {
-            if(hashTableF.get(v.id) == null) {
-                hashTableF.put(v.id, rand.nextInt());
-            }
-            hash ^= hashTableF.get(v.id);
-        }
-    }
-
-    public Set<Node> getA() {
+    public int[] getA() {
         return A;
     }
 
-    public Set<Node> getC() {
+    public int[] getC() {
         return C;
     }
 
-    public Set<Node> getF() {
+    public int[] getF() {
         return F;
     }
 
-    public void addA(Node v) {
-        if(A.add(v)) {
-            updateHash(v, 'A');
+    private void add(int v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'F') {
+            S = F;
+        }
+        int i = Utils.upperBound(S, v);
+		if (i >= 1 && S[i - 1] == v) return;
+		int[] a = new int[S.length + 1];
+		System.arraycopy(S, 0, a, 0, i);
+		a[i] = v;
+		System.arraycopy(S, i, a, i + 1, S.length - i);
+        if(set == 'A') {
+            A = a;
+        } else if(set == 'C') {
+            C = a;
+        } else if(set == 'F') {
+            F = a;
         }
     }
 
-    public void addC(Node v) {
-        if(C.add(v)) {
-            updateHash(v, 'C');
+    private void remove(int v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'F') {
+            S = F;
+        }
+        int i = Arrays.binarySearch(S, v);
+		int[] a = new int[S.length - 1];
+		System.arraycopy(S, 0, a, 0, i);
+		System.arraycopy(S, i + 1, a, i, a.length - i);
+		S = a;
+        if(set == 'A') {
+            A = a;
+        } else if(set == 'C') {
+            C = a;
+        } else if(set == 'F') {
+            F = a;
         }
     }
 
-    public void addF(Node v) {
-        if(F.add(v)) {
-            updateHash(v, 'F');
-        }
+    public void addA(int v) {
+        add(v, 'A');
     }
 
-    public void removeA(Node v) {
-        if(A.remove(v)) {
-            updateHash(v, 'A');
-        }
+    public void addC(int v) {
+        add(v, 'C');
     }
 
-    public void removeC(Node v) {
-        if(C.remove(v)) {
-            updateHash(v, 'C');
-        }
+    public void addF(int v) {
+        add(v, 'F');
     }
 
-    public void removeF(Node v) {
-        if(F.remove(v)) {
-            updateHash(v, 'F');
+    public void removeA(int v) {
+        remove(v, 'A');
+    }
+
+    public void removeC(int v) {
+        remove(v, 'C');
+    }
+
+    public void removeF(int v) {
+        remove(v, 'F');
+    }
+
+    private boolean setContained(int v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'P') {
+            S = F;
         }
+        return Arrays.binarySearch(S, v) >= 0;
     }
 
     public FVC(Graph graph) {
         this.graph = graph;
-        A = new HashSet<>();
-        C = new HashSet<>();
-        F = new HashSet<>();
+        A = new int[0];
+        C = new int[0];
+        F = new int[0];
     }
 
-    public FVC(Graph graph, Set<Node> C) {
+    public FVC(Graph graph, int[] C) {
         this(graph);
-        for(Node v : C) {
+        for(int v : C) {
             addC(v);
         }
         setMaxF();
     }
 
     public void setMaxF() {
-        for(Node v : GraphAlgorithm.getF(new ArrayList<>(C), graph)) {
+        for(int v : GraphAlgorithm.getF(C, graph)) {
             addF(v);
         }
     }
 
-    public void computeMaxA(boolean onlyFlower) {
-        A.clear();
-        Graph fvsGraph = new Graph(graph.name+":FVC");
-        for(Node v : C) {
-            fvsGraph.addNode(v.id);
-        }
-        for(Node v : F) {
-            fvsGraph.addNode(v.id);
-        }
-        for(Node v : C) {
-            for(Edge e : v.neighbors.values()) {
-                if(e.t.id < v.id || !(C.contains(e.t) || F.contains(e.t))) continue;
-                fvsGraph.addEdge(v.id, e.t.id, e.c);
-            }
-        }
-        for(Node v : F) {
-            for(Edge e : v.neighbors.values()) {
-                if(e.t.id < v.id || !(C.contains(e.t) || F.contains(e.t))) continue;
-                fvsGraph.addEdge(v.id, e.t.id, e.c);
-            }
-        }
-        for(Node v : C) {
-            if(GraphAlgorithm.hasFlower(F, v) >= C.size()) {
+    public void computeMaxA() {
+        int[] allNodes = new int[C.length+F.length];
+        System.arraycopy(C, 0, allNodes, 0, C.length);
+        System.arraycopy(F, 0, allNodes, C.length, F.length);
+        Graph pathAntlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
+        A = new int[0];
+        for(int v : C) {
+            if(GraphAlgorithm.hasFlower(F, v, graph) >= C.length) {
                 addA(v);
-            } else if(!onlyFlower && GraphAlgorithm.smartDisjointFVS(fvsGraph.nodes.get(v.id), C.size()-1, fvsGraph) == null) {
+            } else if(GraphAlgorithm.smartDisjointFVS(v, C.length-1, pathAntlerGraph) == null) {
                 addA(v);
             }
         }
@@ -142,17 +151,33 @@ public class FVC {
 
     @Override
     public boolean equals(Object other) {
-        if(!(other instanceof PathAntler)) return false;
-        return hash == ((PathAntler)other).hash;
+        if(!(other instanceof FVC)) return false;
+        FVC otherFVC = (FVC)other;
+        if(otherFVC.getA().length != A.length || otherFVC.getC().length != C.length || otherFVC.getF().length != F.length) return false;
+        for(int i = 0; i < A.length; i++) if(otherFVC.getA()[i] != A[i]) return false;
+        for(int i = 0; i < C.length; i++) if(otherFVC.getC()[i] != C[i]) return false;
+        for(int i = 0; i < F.length; i++) if(otherFVC.getF()[i] != F[i]) return false;
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return hash;
+        final int prime = 31;
+        int result = 1;
+        for(int i : A) {
+            result = prime * result + i;
+        }
+        for(int i : C) {
+            result = prime * result + i;
+        }
+        for(int i : F) {
+            result = prime * result + i;
+        }
+        return result;
     }
 
     @Override
     public String toString() {
-        return "A: "+(new ArrayList<Node>(A)).toString()+", C: "+(new ArrayList<Node>(C)).toString()+", F: "+(new ArrayList<Node>(F));
+        return "A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", F: "+Arrays.toString(F);
     }
 }

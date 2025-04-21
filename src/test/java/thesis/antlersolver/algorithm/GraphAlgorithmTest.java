@@ -2,13 +2,11 @@ package thesis.antlersolver.algorithm;
 
 import org.junit.jupiter.api.Test;
 
+import fvs_wata_orz.Graph;
 import thesis.antlersolver.command.AddEdgeCommand;
 import thesis.antlersolver.command.RemoveEdgeCommand;
 import thesis.antlersolver.command.RemoveNodeCommand;
-import thesis.antlersolver.model.Edge;
 import thesis.antlersolver.model.FVC;
-import thesis.antlersolver.model.Graph;
-import thesis.antlersolver.model.Node;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
 
@@ -22,28 +20,8 @@ import java.util.Set;
 public class GraphAlgorithmTest {
 
     public Graph makeTestGraph() {
-        Graph graph = new Graph("test");
-        graph.addNode(0);
-        graph.addNode(1);
-        graph.addNode(2);
-        graph.addNode(3);
-        graph.addNode(4);
-        graph.addNode(5);
-        graph.addNode(6);
-        graph.addNode(7);
-        graph.addEdge(0, 1);
-        graph.addEdge(0, 2);
-        graph.addEdge(1, 2);
-        graph.addEdge(1, 5);
-        graph.addEdge(1, 6);
-        graph.addEdge(2, 2);
-        graph.addEdge(2, 3);
-        graph.addEdge(2, 5);
-        graph.addEdge(2, 5);
-        graph.addEdge(3,4, 2);
-        graph.addEdge(4, 5);
-        graph.addEdge(4,5, 2);
-        return graph;
+        int[][] adj = new int[][]{{1,2},{0,2,5,6},{0,1,2,3,5,5},{2,4,4},{3,3,5,5},{1,2,2,4,4},{1},{}};
+        return new Graph(adj);
     }
 
     public Pair<FVC, Graph> makeTestFVC() {
@@ -83,72 +61,50 @@ public class GraphAlgorithmTest {
     }
 
     @Test
-    public void testConnectedComponents() {
-        Graph graph = makeTestGraph();
-        List<List<Node>> cc = GraphAlgorithm.connectedComponents(graph);
-        assertEquals(2, cc.size(), "Connected Components test 1 failed");
-        assertEquals(7, cc.get(0).size(), "Connected Components test 2 failed");
-        assertEquals(1, cc.get(1).size(), "Connected Components test 3 failed");
-        assertTrue(cc.get(1).contains(graph.nodes.get(7)), "Connected Components test 4 failed");
-        RemoveNodeCommand remove1 = new RemoveNodeCommand(2, graph);
-        remove1.execute();
-        RemoveNodeCommand remove2 = new RemoveNodeCommand(5, graph);
-        remove2.execute();
-        cc = GraphAlgorithm.connectedComponents(graph);
-        assertEquals(3, cc.size(), "Connected Components test 5 failed");
-        assertEquals(3, cc.get(0).size(), "Connected Components test 6 failed");
-        assertEquals(2, cc.get(1).size(), "Connected Components test 7 failed");
-        assertEquals(1, cc.get(2).size(), "Connected Components test 8 failed");
-    }
-
-    @Test
     public void testIsAcyclic() {
         Graph graph = makeTestGraph();
         assertFalse(GraphAlgorithm.isAcyclic(graph), "Is Acyclic test 1 failed");
-        RemoveNodeCommand remove1 = new RemoveNodeCommand(2, graph);
-        remove1.execute();
-        RemoveNodeCommand remove2 = new RemoveNodeCommand(5, graph);
-        remove2.execute();
+        graph.removeV(3);
+        graph.removeV(5);
         assertFalse(GraphAlgorithm.isAcyclic(graph), "Is Acyclic test 2 failed");
-        RemoveNodeCommand remove3 = new RemoveNodeCommand(3, graph);
-        remove3.execute();
+        graph.removeV(2);
         assertTrue(GraphAlgorithm.isAcyclic(graph), "Is Acyclic test 3 failed");
-        graph.addEdge(0, 0);
-        assertFalse(GraphAlgorithm.isAcyclic(graph), "Is Acyclic test 4 failed");
-    }
-
-    @Test
-    public void testEdgeBCC() {
-        Graph graph = makeTestGraph();
-        List<Edge> bridges = GraphAlgorithm.edgeBCC(graph);
-        assertEquals(1, bridges.size(), "Edge BCC test 1 failed");
-        assertTrue(bridges.contains(graph.nodes.get(1).neighbors.get(graph.nodes.get(6))), "Edge BCC test 2 failed");
-        RemoveEdgeCommand remove = new RemoveEdgeCommand(4, 5, 3, graph);
-        remove.execute();
-        AddEdgeCommand add = new AddEdgeCommand(1, 6, graph);
-        add.execute();
-        bridges = GraphAlgorithm.edgeBCC(graph);
-        assertEquals(1, bridges.size(), "Edge BCC test 3 failed");
-        assertTrue(bridges.contains(graph.nodes.get(2).neighbors.get(graph.nodes.get(3))), "Edge BCC test 4 failed");
     }
 
     @Test
     public void testSingletonPathAntlers() {
         Graph graph = makeTestGraph();
-        List<PathAntler> pathAntlers = GraphAlgorithm.getSingletonPathAntlers(graph, false);
-        assertEquals(4, pathAntlers.size(), "Singleton Path Antler test 1 failed");
-        assertTrue(pathAntlers.get(0).getC().contains(graph.nodes.get(1)), "Singleton Path Antler test 2 failed");
-        assertEquals(1, pathAntlers.get(0).getP().size(), "Singleton Path Antler test 3 failed");
-        assertTrue(pathAntlers.get(1).getP().contains(graph.nodes.get(0)) || pathAntlers.get(1).getP().contains(graph.nodes.get(6)), "Singleton Path Antler test 4 failed");
-        assertTrue(pathAntlers.get(1).getC().contains(graph.nodes.get(1)), "Singleton Path Antler test 5 failed");
-        assertEquals(1, pathAntlers.get(1).getP().size(), "Singleton Path Antler test 6 failed");
-        assertTrue(pathAntlers.get(1).getP().contains(graph.nodes.get(0)) || pathAntlers.get(1).getP().contains(graph.nodes.get(6)), "Singleton Path Antler test 7 failed");
-        assertTrue(pathAntlers.get(2).getC().contains(graph.nodes.get(2)), "Singleton Path Antler test 8 failed");
-        assertEquals(1, pathAntlers.get(2).getP().size(), "Singleton Path Antler test 9 failed");
-        assertTrue(pathAntlers.get(2).getP().contains(graph.nodes.get(0)), "Singleton Path Antler test 10 failed");
-        assertTrue(pathAntlers.get(3).getC().contains(graph.nodes.get(4)), "Singleton Path Antler test 11 failed");
-        assertEquals(1, pathAntlers.get(3).getP().size(), "Singleton Path Antler test 12 failed");
-        assertTrue(pathAntlers.get(3).getP().contains(graph.nodes.get(3)), "Singleton Path Antler test 13 failed");
+        PathAntler[] pathAntlers = GraphAlgorithm.getSingletonPathAntlers(graph);
+        assertEquals(4, pathAntlers.length, "Singleton Path Antler test 1 failed");
+        assertEquals(0, pathAntlers[0].getA().length, "Singleton Path Antler test 2 failed");
+        assertEquals(1, pathAntlers[0].getC().length, "Singleton Path Antler test 3 failed");
+        assertEquals(1, pathAntlers[0].getC()[0], "Singleton Path Antler test 4 failed");
+        assertEquals(1, pathAntlers[0].getP().length, "Singleton Path Antler test 5 failed");
+        assertEquals(0, pathAntlers[0].getP()[0], "Singleton Path Antler test 6 failed");
+        assertEquals(0, pathAntlers[1].getA().length, "Singleton Path Antler test 7 failed");
+        assertEquals(1, pathAntlers[1].getC().length, "Singleton Path Antler test 8 failed");
+        assertEquals(1, pathAntlers[1].getC()[0], "Singleton Path Antler test 9 failed");
+        assertEquals(1, pathAntlers[1].getP().length, "Singleton Path Antler test 10 failed");
+        assertEquals(6, pathAntlers[1].getP()[0], "Singleton Path Antler test 11 failed");
+        assertEquals(1, pathAntlers[2].getA().length, "Singleton Path Antler test 12 failed");
+        assertEquals(2, pathAntlers[2].getA()[0], "Singleton Path Antler test 13 failed");
+        assertEquals(1, pathAntlers[2].getC().length, "Singleton Path Antler test 14 failed");
+        assertEquals(2, pathAntlers[2].getC()[0], "Singleton Path Antler test 15 failed");
+        assertEquals(1, pathAntlers[2].getP().length, "Singleton Path Antler test 16 failed");
+        assertEquals(0, pathAntlers[2].getP()[0], "Singleton Path Antler test 17 failed");
+        assertEquals(0, pathAntlers[3].getA().length, "Singleton Path Antler test 18 failed");
+        assertEquals(1, pathAntlers[3].getC().length, "Singleton Path Antler test 19 failed");
+        assertEquals(4, pathAntlers[3].getC()[0], "Singleton Path Antler test 20 failed");
+        assertEquals(1, pathAntlers[3].getP().length, "Singleton Path Antler test 21 failed");
+        assertEquals(3, pathAntlers[3].getP()[0], "Singleton Path Antler test 22 failed");
+        long graphTime = -System.currentTimeMillis();
+        Graph randomGraph = GraphAlgorithm.randomGraph(10000, 0.1);
+        graphTime += System.currentTimeMillis();
+        System.out.println(graphTime);
+        long time = -System.currentTimeMillis();
+        PathAntler[] pathAntlers2 = GraphAlgorithm.getSingletonPathAntlers(randomGraph);
+        time += System.currentTimeMillis();
+        System.out.println(time);
     }
 
     @Test
@@ -179,40 +135,44 @@ public class GraphAlgorithmTest {
     @Test
     public void testNaiveFVS() {
         Graph graph = makeTestGraph();
-        List<Node> fvs = GraphAlgorithm.naiveFVS(graph);
-        assertEquals(2, fvs.size(), "Naive FVS test 1 failed");
-        assertTrue(fvs.contains(graph.nodes.get(2)), "Naive FVS test 2 failed");
-        assertTrue(fvs.contains(graph.nodes.get(4)), "Naive FVS test 3 failed");
+        int[] fvs = GraphAlgorithm.naiveFVS(graph);
+        assertEquals(2, fvs.length, "Naive FVS test 1 failed");
+        assertEquals(2, fvs[0], "Naive FVS test 2 failed");
+        assertEquals(4, fvs[1], "Naive FVS test 3 failed");
+        assertEquals(null, GraphAlgorithm.naiveFVS(1, graph), "Naive FVS test 4 failed");
     }
 
     @Test
     public void testNaiveDisjointFVS() {
         Graph graph = makeTestGraph();
-        List<Node> fvs = GraphAlgorithm.naiveDisjointFVS(graph.nodes.get(4), graph);
-        assertEquals(3, fvs.size(), "Naive Disjoint FVS test 1 failed");
-        assertTrue(fvs.contains(graph.nodes.get(2)), "Naive Disjoint FVS test 2 failed");
-        assertTrue(fvs.contains(graph.nodes.get(3)), "Naive Disjoint FVS test 3 failed");
-        assertTrue(fvs.contains(graph.nodes.get(5)), "Naive Disjoint FVS test 4 failed");
-        assertEquals(null, GraphAlgorithm.naiveDisjointFVS(graph.nodes.get(4), 2, graph), "Naive Disjoint FVS test 5 failed");
-        assertEquals(null, GraphAlgorithm.naiveDisjointFVS(graph.nodes.get(2), graph), "Naive Disjoint FVS test 6 failed");
+        int[] fvs = GraphAlgorithm.naiveDisjointFVS(4, graph);
+        assertEquals(3, fvs.length, "Naive Disjoint FVS test 1 failed");
+        assertEquals(2, fvs[0], "Naive Disjoint FVS test 2 failed");
+        assertEquals(3, fvs[1], "Naive Disjoint FVS test 3 failed");
+        assertEquals(5, fvs[2], "Naive Disjoint FVS test 4 failed");
+        assertEquals(null, GraphAlgorithm.naiveDisjointFVS(4, 2, graph), "Naive Disjoint FVS test 5 failed");
+        assertEquals(null, GraphAlgorithm.naiveDisjointFVS(2, graph), "Naive Disjoint FVS test 6 failed");
     }
 
     @Test
     public void testSmartFVS() {
         Graph graph = makeTestGraph();
-        List<Node> fvs = GraphAlgorithm.smartFVS(graph);
-        assertEquals(2, fvs.size(), "Smart FVS test 1 failed");
-        assertTrue(fvs.contains(graph.nodes.get(2)), "Smart FVS test 2 failed");
-        assertTrue(fvs.contains(graph.nodes.get(4)), "Smart FVS test 3 failed");
+        int[] fvs = GraphAlgorithm.smartFVS(graph);
+        assertEquals(2, fvs.length, "Smart FVS test 1 failed");
+        assertEquals(2, fvs[0], "Smart FVS test 2 failed");
+        assertEquals(4, fvs[1], "Smart FVS test 3 failed");
+        assertEquals(null, GraphAlgorithm.smartFVS(1, graph), "Smart FVS test 4 failed");
     }
 
     @Test
     public void testSmartDisjointFVS() {
         Graph graph = makeTestGraph();
-        List<Node> fvs = GraphAlgorithm.smartDisjointFVS(graph.nodes.get(4), 3, graph);
-        assertEquals(3, fvs.size(), "Smart Disjoint FVS test 1 failed");
-        assertTrue(fvs.contains(graph.nodes.get(2)), "Smart Disjoint FVS test 2 failed");
-        assertTrue(fvs.contains(graph.nodes.get(3)), "Smart Disjoint FVS test 3 failed");
-        assertTrue(fvs.contains(graph.nodes.get(5)), "Smart Disjoint FVS test 4 failed");
+        int[] fvs = GraphAlgorithm.smartDisjointFVS(4, graph);
+        assertEquals(3, fvs.length, "Smart Disjoint FVS test 1 failed");
+        assertEquals(2, fvs[0], "Smart Disjoint FVS test 2 failed");
+        assertEquals(3, fvs[1], "Smart Disjoint FVS test 3 failed");
+        assertEquals(5, fvs[2], "Smart Disjoint FVS test 4 failed");
+        assertEquals(null, GraphAlgorithm.smartDisjointFVS(4, 2, graph), "Smart Disjoint FVS test 5 failed");
+        assertEquals(null, GraphAlgorithm.smartDisjointFVS(2, graph), "Smart Disjoint FVS test 6 failed");
     }
 }

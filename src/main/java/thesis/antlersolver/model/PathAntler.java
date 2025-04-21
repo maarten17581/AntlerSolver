@@ -1,133 +1,180 @@
 package thesis.antlersolver.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import fvs_wata_orz.Graph;
+import fvs_wata_orz.tc.wata.util.Utils;
 import thesis.antlersolver.algorithm.GraphAlgorithm;
 
 public class PathAntler {
-    private Set<Node> A;
-    private Set<Node> C;
-    private Set<Node> P;
+    private int[] A;
+    private int[] C;
+    private int[] P;
     public Graph graph;
-    public Node[] endpoints;
-    public Node[] nextnodes;
+    public int[] endpoints;
+    public int[] nextnodes;
     public boolean[] extended;
     public boolean isCyclic;
 
-    private static Map<Integer, Integer> hashTableA = new HashMap<>();
-    private static Map<Integer, Integer> hashTableC = new HashMap<>();
-    private static Map<Integer, Integer> hashTableP = new HashMap<>();
-    private static Random rand = new Random();
-
-    public int hash = 0;
-
-    private void updateHash(Node v, char set) {
-        if(set == 'A') {
-            if(hashTableA.get(v.id) == null) {
-                hashTableA.put(v.id, rand.nextInt());
-            }
-            hash ^= hashTableA.get(v.id);
-        } else if(set == 'C') {
-            if(hashTableC.get(v.id) == null) {
-                hashTableC.put(v.id, rand.nextInt());
-            }
-            hash ^= hashTableC.get(v.id);
-        } else if(set == 'P') {
-            if(hashTableP.get(v.id) == null) {
-                hashTableP.put(v.id, rand.nextInt());
-            }
-            hash ^= hashTableP.get(v.id);
-        }
-    }
-
-    public Set<Node> getA() {
+    public int[] getA() {
         return A;
     }
 
-    public Set<Node> getC() {
+    public int[] getC() {
         return C;
     }
 
-    public Set<Node> getP() {
+    public int[] getP() {
         return P;
     }
 
-    public void addA(Node v) {
-        if(A.add(v)) {
-            updateHash(v, 'A');
+    private void add(int v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'P') {
+            S = P;
+        }
+        int i = Utils.upperBound(S, v);
+		if (i >= 1 && S[i - 1] == v) return;
+		int[] a = new int[S.length + 1];
+		System.arraycopy(S, 0, a, 0, i);
+		a[i] = v;
+		System.arraycopy(S, i, a, i + 1, S.length - i);
+        if(set == 'A') {
+            A = a;
+        } else if(set == 'C') {
+            C = a;
+        } else if(set == 'P') {
+            P = a;
         }
     }
 
-    public void addC(Node v) {
-        if(C.add(v)) {
-            updateHash(v, 'C');
+    private void remove(int v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'P') {
+            S = P;
+        }
+        int i = Arrays.binarySearch(S, v);
+		int[] a = new int[S.length - 1];
+		System.arraycopy(S, 0, a, 0, i);
+		System.arraycopy(S, i + 1, a, i, a.length - i);
+		S = a;
+        if(set == 'A') {
+            A = a;
+        } else if(set == 'C') {
+            C = a;
+        } else if(set == 'P') {
+            P = a;
         }
     }
 
-    public void addP(Node v) {
-        if(P.add(v)) {
-            updateHash(v, 'P');
-        }
+    public void addA(int v) {
+        add(v, 'A');
     }
 
-    public void removeA(Node v) {
-        if(A.remove(v)) {
-            updateHash(v, 'A');
-        }
+    public void addC(int v) {
+        add(v, 'C');
     }
 
-    public void removeC(Node v) {
-        if(C.remove(v)) {
-            updateHash(v, 'C');
-        }
+    public void addP(int v) {
+        add(v, 'P');
     }
 
-    public void removeP(Node v) {
-        if(P.remove(v)) {
-            updateHash(v, 'P');
+    public void removeA(int v) {
+        remove(v, 'A');
+    }
+
+    public void removeC(int v) {
+        remove(v, 'C');
+    }
+
+    public void removeP(int v) {
+        remove(v, 'P');
+    }
+
+    private boolean setContained(int v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'P') {
+            S = P;
         }
+        return Arrays.binarySearch(S, v) >= 0;
     }
 
     public PathAntler(Graph graph) {
         this.graph = graph;
-        A = new HashSet<>();
-        C = new HashSet<>();
-        P = new HashSet<>();
-        endpoints = new Node[2];
-        nextnodes = new Node[2];
+        A = new int[0];
+        C = new int[0];
+        P = new int[0];
+        endpoints = new int[]{-1, -1};
+        nextnodes = new int[]{-1, -1};
         extended = new boolean[2];
         isCyclic = false;
     }
 
-    public void computeStatistics() {
-        nextnodes[0] = null;
-        nextnodes[1] = null;
-        endpoints[0] = null;
-        endpoints[1] = null;
+    public PathAntler(Graph graph, int[] A, int[] C, int[] P) {
+        this.graph = graph;
+        this.A = A;
+        this.C = C;
+        this.P = P;
+        endpoints = new int[]{-1, -1};
+        nextnodes = new int[]{-1, -1};
+        extended = new boolean[2];
         isCyclic = false;
-        for(Node pathNode : P) {
+        computeStatistics();
+    }
+
+    public PathAntler(PathAntler pathAntler) {
+        this.graph = pathAntler.graph;
+        this.A = pathAntler.A.clone();
+        this.C = pathAntler.C.clone();
+        this.P = pathAntler.P.clone();
+        this.endpoints = pathAntler.endpoints.clone();
+        this.nextnodes = pathAntler.nextnodes.clone();
+        this.extended = pathAntler.extended.clone();
+        isCyclic = pathAntler.isCyclic;
+    }
+
+    public void computeStatistics() {
+        nextnodes[0] = -1;
+        nextnodes[1] = -1;
+        endpoints[0] = -1;
+        endpoints[1] = -1;
+        isCyclic = false;
+        for(int pathNode : P) {
             int pCount = 0;
-            Node next = null;
-            Node next2 = null;
-            for(Node nb : pathNode.neighbors.keySet()) {
-                if(!P.contains(nb) && !C.contains(nb)) {
-                    if(next == null) {
+            int next = -1;
+            int next2 = -1;
+            for(int nb : graph.adj[pathNode]) {
+                if(!setContained(nb, 'P') && !setContained(nb, 'C')) {
+                    if(next == -1) {
                         next = nb;
                     } else {
                         next2 = nb;
                     }
                 }
-                if(P.contains(nb)) {
+                if(setContained(nb, 'P')) {
                     pCount++;
                 }
             }
             if(pCount <= 1) {
-                if(endpoints[0] == null) {
+                if(endpoints[0] == -1) {
                     endpoints[0] = pathNode;
                     nextnodes[0] = next;
                     endpoints[1] = pathNode;
@@ -138,36 +185,39 @@ public class PathAntler {
                 }
             }
         }
-        if(endpoints[0] == null) {
+        if(endpoints[0] == -1) {
             isCyclic = true;
         }
     }
 
     public void extendP(boolean earlyStop) {
         for(int i = 0; i < 2; i++) {
-            if(nextnodes[i] == null) continue;
+            if(nextnodes[i] == -1) continue;
             while(true) {
-                Node step = null;
+                int step = -1;
                 int pConnect = 0;
                 int stepConnect = 0;
-                for(Edge e : nextnodes[i].neighbors.values()) {
-                    if(C.contains(e.t)) continue;
-                    if(P.contains(e.t)) {
+                for(int j : graph.adj[nextnodes[i]]) {
+                    if(j+1 < graph.adj[nextnodes[i]].length && graph.adj[nextnodes[i]][j] == graph.adj[nextnodes[i]][j+1]) continue;
+                    if(setContained(j, 'C')) continue;
+                    if(setContained(j, 'P')) {
                         pConnect++;
                         continue;
                     }
-                    if(e.c == 1) {
-                        step = e.t;
+                    if(j == 0 || graph.adj[nextnodes[i]][j-1] != graph.adj[nextnodes[i]][j]) {
+                        step = j;
+                    } else {
+                        stepConnect++;
                     }
-                    stepConnect += e.c;
+                    stepConnect++;
                 }
                 if((pConnect == 2 && stepConnect > 0) || stepConnect > 1 || step == nextnodes[i]) break;
                 if(pConnect == 2) {
                     addP(nextnodes[i]);
-                    endpoints[0] = null;
-                    endpoints[1] = null;
-                    nextnodes[0] = null;
-                    nextnodes[1] = null;
+                    endpoints[0] = -1;
+                    endpoints[1] = -1;
+                    nextnodes[0] = -1;
+                    nextnodes[1] = -1;
                     isCyclic = true;
                     break;
                 }
@@ -175,64 +225,55 @@ public class PathAntler {
                 endpoints[i] = nextnodes[i];
                 nextnodes[i] = step;
                 if(stepConnect == 0) break;
-                if(earlyStop && P.size() > C.size()*(2*C.size() + 1)) break;
+                if(earlyStop && P.length > C.length*(2*C.length + 1)) break;
             }
         }
     }
 
     public void computeMaxA() {
-        A.clear();
-        Graph pathAntlerGraph = new Graph(graph.name+":pathAntler");
-        for(Node v : C) {
-            pathAntlerGraph.addNode(v.id);
-        }
-        for(Node v : P) {
-            pathAntlerGraph.addNode(v.id);
-        }
-        for(Node v : C) {
-            for(Edge e : v.neighbors.values()) {
-                if(e.t.id < v.id || !(C.contains(e.t) || P.contains(e.t))) continue;
-                pathAntlerGraph.addEdge(v.id, e.t.id, e.c);
-            }
-        }
-        for(Node v : P) {
-            for(Edge e : v.neighbors.values()) {
-                if(e.t.id < v.id || !(C.contains(e.t) || P.contains(e.t))) continue;
-                pathAntlerGraph.addEdge(v.id, e.t.id, e.c);
-            }
-        }
-        for(Node v : C) {
-            if(GraphAlgorithm.hasFlower(P, v) >= C.size()+1) {
+        int[] allNodes = new int[C.length+P.length];
+        System.arraycopy(C, 0, allNodes, 0, C.length);
+        System.arraycopy(P, 0, allNodes, C.length, P.length);
+        Graph pathAntlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
+        A = new int[0];
+        for(int v : C) {
+            if(GraphAlgorithm.hasFlower(P, v, graph) >= C.length+1) {
                 addA(v);
-            } else if(GraphAlgorithm.smartDisjointFVS(pathAntlerGraph.nodes.get(v.id), C.size(), pathAntlerGraph) == null) {
+            } else if(GraphAlgorithm.smartDisjointFVS(v, C.length, pathAntlerGraph) == null) {
                 addA(v);
             }
         }
-    }
-
-    public boolean contained(PathAntler other) {
-        for(Node v : C) {
-            if(!other.C.contains(v)) return false;
-        }
-        for(Node v : other.P) {
-            if(!P.contains(v)) return false;
-        }
-        return true;
     }
 
     @Override
     public boolean equals(Object other) {
         if(!(other instanceof PathAntler)) return false;
-        return hash == ((PathAntler)other).hash;
+        PathAntler otherPA = (PathAntler)other;
+        if(otherPA.getA().length != A.length || otherPA.getC().length != C.length || otherPA.getP().length != P.length) return false;
+        for(int i = 0; i < A.length; i++) if(otherPA.getA()[i] != A[i]) return false;
+        for(int i = 0; i < C.length; i++) if(otherPA.getC()[i] != C[i]) return false;
+        for(int i = 0; i < P.length; i++) if(otherPA.getP()[i] != P[i]) return false;
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return hash;
+        final int prime = 31;
+        int result = 1;
+        for(int i : A) {
+            result = prime * result + i;
+        }
+        for(int i : C) {
+            result = prime * result + i;
+        }
+        for(int i : P) {
+            result = prime * result + i;
+        }
+        return result;
     }
 
     @Override
     public String toString() {
-        return "A: "+(new ArrayList<Node>(A)).toString()+", C: "+(new ArrayList<Node>(C)).toString()+", P: "+(new ArrayList<Node>(P));
+        return "A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P);
     }
 }
