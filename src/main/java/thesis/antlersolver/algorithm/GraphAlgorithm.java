@@ -62,14 +62,17 @@ public class GraphAlgorithm {
 
     public static Graph subGraph(int[] nodes, Graph graph) {
         int[] inNodes = new int[graph.n];
+        int maxdegree = 0;
         for(int i = 0; i < nodes.length; i++) inNodes[nodes[i]] = i+1;
-        int[][] adj = new int[nodes.length][];
+        for(int v : nodes) Math.max(maxdegree, graph.adj[v].length);
+        int[][] adj = new int[Math.max(nodes.length, maxdegree)][0];
         for(int i = 0; i < nodes.length; i++) {
             int count = 0;
             for(int j : graph.adj[nodes[i]]) if(inNodes[j] >= 1) count++;
             adj[i] = new int[count];
             int index = 0;
             for(int j : graph.adj[nodes[i]]) if(inNodes[j] >= 1) adj[i][index++] = inNodes[j]-1;
+            Arrays.sort(adj[i]);
         }
         return new Graph(adj);
     }
@@ -143,7 +146,7 @@ public class GraphAlgorithm {
                     int node = queue[index++];
                     for(int nb : graph.adj[node]) {
                         int loc = Arrays.binarySearch(pathnodes[i], nb);
-                        if(loc < 0 || visited[loc] || i == nb) continue;
+                        if(loc < 0 || visited[loc]) continue;
                         visited[loc] = true;
                         queue[end++] = nb;
                     }
@@ -184,221 +187,227 @@ public class GraphAlgorithm {
     //     return hash;
     // }
 
-    // public static List<PathAntler> getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck, boolean checkF) {
-    //     if(k == 1) {
-    //         List<PathAntler> singlePathAntlers = getSingletonPathAntlers(graph, checkF);
-    //         List<PathAntler> nonEmptyPathAntlers = new ArrayList<>();
-    //         for(PathAntler pathAntler : singlePathAntlers) {
-    //             if(!pathAntler.getA().isEmpty()) {
-    //                 nonEmptyPathAntlers.add(pathAntler);
-    //             }
-    //         }
-    //         if(nonEmptyPathAntlers.isEmpty()) {
-    //             return singlePathAntlers;
-    //         } else {
-    //             return nonEmptyPathAntlers;
-    //         }
-    //     }
-    //     List<PathAntler> prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck, checkF);
-    //     if(!prevPathAntlers.isEmpty() && !prevPathAntlers.get(0).getA().isEmpty()) {
-    //         return prevPathAntlers;
-    //     }
-    //     List<PathAntler> nextPathAntlers = new ArrayList<>();
-    //     for(PathAntler pathAntler : prevPathAntlers) {
-    //         for(int i = 0; i < 2; i++) {
-    //             Node nextNode = pathAntler.nextnodes[i];
-    //             if(nextNode == null || pathAntler.extended[i] || graph.selfloop.contains(nextNode)) continue;
-    //             Node nbInF = null;
-    //             boolean possible = true;
-    //             int nbh = 0;
-    //             for(Node nb : nextNode.neighbors.keySet()) {
-    //                 if(pathAntler.getC().contains(nb) || pathAntler.getP().contains(nb)) continue;
-    //                 nbh++;
-    //                 if(nb.isF() && nbInF == null && checkF) {
-    //                     nbInF = nb;
-    //                     if(nextNode.neighbors.get(nb).c >= 2) {
-    //                         possible = false;
-    //                         break;
-    //                     }
-    //                 } else if(nb.isF() && checkF) {
-    //                     possible = false;
-    //                     break;
-    //                 }
-    //             }
-    //             if(!possible) {
-    //                 pathAntler.extended[i] = true;
-    //                 continue;
-    //             }
-    //             if(nbh + pathAntler.getC().size() == k+1) {
-    //                 if(nbInF != null) {
-    //                     pathAntler.extended[i] = true;
-    //                     PathAntler newPathAntler = new PathAntler(graph);
-    //                     for(Node u : pathAntler.getC()) {
-    //                         newPathAntler.addC(u);
-    //                     }
-    //                     for(Node w : nextNode.neighbors.keySet()) {
-    //                         if(pathAntler.getP().contains(w) || pathAntler.getC().contains(w) || nbInF == w) continue;
-    //                         newPathAntler.addC(w);
-    //                     }
-    //                     for(Node u : pathAntler.getP()) {
-    //                         newPathAntler.addP(u);
-    //                     }
-    //                     newPathAntler.endpoints[0] = pathAntler.endpoints[0];
-    //                     newPathAntler.endpoints[1] = pathAntler.endpoints[1];
-    //                     newPathAntler.nextnodes[0] = newPathAntler.getC().contains(pathAntler.nextnodes[0]) ? null : pathAntler.nextnodes[0];
-    //                     newPathAntler.nextnodes[1] = newPathAntler.getC().contains(pathAntler.nextnodes[1]) ? null : pathAntler.nextnodes[1];
-    //                     newPathAntler.extendP(true);
-    //                     nextPathAntlers.add(newPathAntler);
-    //                     continue;
-    //                 }
-    //                 for(Node v : nextNode.neighbors.keySet()) {
-    //                     if(pathAntler.getP().contains(v) || pathAntler.getC().contains(v) || nextNode.neighbors.get(v).c >= 2) continue;
-    //                     pathAntler.extended[i] = true;
-    //                     PathAntler newPathAntler = new PathAntler(graph);
-    //                     for(Node u : pathAntler.getC()) {
-    //                         newPathAntler.addC(u);
-    //                     }
-    //                     for(Node w : nextNode.neighbors.keySet()) {
-    //                         if(pathAntler.getP().contains(w) || pathAntler.getC().contains(w) || v == w) continue;
-    //                         newPathAntler.addC(w);
-    //                     }
-    //                     for(Node u : pathAntler.getP()) {
-    //                         newPathAntler.addP(u);
-    //                     }
-    //                     newPathAntler.endpoints[0] = pathAntler.endpoints[0];
-    //                     newPathAntler.endpoints[1] = pathAntler.endpoints[1];
-    //                     newPathAntler.nextnodes[0] = newPathAntler.getC().contains(pathAntler.nextnodes[0]) ? null : pathAntler.nextnodes[0];
-    //                     newPathAntler.nextnodes[1] = newPathAntler.getC().contains(pathAntler.nextnodes[1]) ? null : pathAntler.nextnodes[1];
-    //                     newPathAntler.extendP(true);
-    //                     nextPathAntlers.add(newPathAntler);
-    //                 }
-    //             } else if(nbh + pathAntler.getC().size() <= k) {
-    //                 if(nbInF != null) {
-    //                     pathAntler.extended[i] = true;
-    //                     PathAntler newPathAntler = new PathAntler(graph);
-    //                     for(Node u : pathAntler.getC()) {
-    //                         newPathAntler.addC(u);
-    //                     }
-    //                     for(Node w : nextNode.neighbors.keySet()) {
-    //                         if(pathAntler.getP().contains(w) || pathAntler.getC().contains(w) || nbInF == w) continue;
-    //                         newPathAntler.addC(w);
-    //                     }
-    //                     for(Node u : pathAntler.getP()) {
-    //                         newPathAntler.addP(u);
-    //                     }
-    //                     newPathAntler.endpoints[0] = pathAntler.endpoints[0];
-    //                     newPathAntler.endpoints[1] = pathAntler.endpoints[1];
-    //                     newPathAntler.nextnodes[0] = newPathAntler.getC().contains(pathAntler.nextnodes[0]) ? null : pathAntler.nextnodes[0];
-    //                     newPathAntler.nextnodes[1] = newPathAntler.getC().contains(pathAntler.nextnodes[1]) ? null : pathAntler.nextnodes[1];
-    //                     newPathAntler.extendP(true);
-    //                     nextPathAntlers.add(newPathAntler);
-    //                     continue;
-    //                 }
-    //                 pathAntler.extended[i] = true;
-    //                 PathAntler newPathAntler = new PathAntler(graph);
-    //                 for(Node u : pathAntler.getC()) {
-    //                     newPathAntler.addC(u);
-    //                 }
-    //                 for(Node w : nextNode.neighbors.keySet()) {
-    //                     if(pathAntler.getP().contains(w) || pathAntler.getC().contains(w)) continue;
-    //                     newPathAntler.addC(w);
-    //                 }
-    //                 for(Node u : pathAntler.getP()) {
-    //                     newPathAntler.addP(u);
-    //                 }
-    //                 newPathAntler.endpoints[0] = pathAntler.endpoints[0];
-    //                 newPathAntler.endpoints[1] = pathAntler.endpoints[1];
-    //                 newPathAntler.nextnodes[0] = newPathAntler.getC().contains(pathAntler.nextnodes[0]) ? null : pathAntler.nextnodes[0];
-    //                 newPathAntler.nextnodes[1] = newPathAntler.getC().contains(pathAntler.nextnodes[1]) ? null : pathAntler.nextnodes[1];
-    //                 newPathAntler.extendP(true);
-    //                 nextPathAntlers.add(newPathAntler);
-    //             }
-    //         }
-    //         if((!pathAntler.extended[0] && pathAntler.nextnodes[0] != null) || (!pathAntler.extended[1] && pathAntler.nextnodes[1] != null)) {
-    //             nextPathAntlers.add(pathAntler);
-    //         }
-    //     }
-    //     Map<Integer, Set<Node>> hashToC = new HashMap<>();
-    //     Map<Integer, Set<Node>> hashToP = new HashMap<>();
-    //     for(Node v : graph.nodes.values()) {
-    //         if(v.nbhSize <= k+2 && v.nbhSize >= k && !graph.selfloop.contains(v)) {
-    //             List<Node> nbhNodes = new ArrayList<>(v.neighbors.keySet());
-    //             boolean iLoop = false;
-    //             boolean jLoop = false;
-    //             if(nbhNodes.size() >= k+1) {
-    //                 iLoop = true;
-    //             }
-    //             if(nbhNodes.size() >= k+2) {
-    //                 jLoop = true;
-    //             }
-    //             for(int i = (iLoop ? 0 : -2); i < (iLoop ? nbhNodes.size() : -1); i++) {
-    //                 for(int j = (jLoop ? i+1 : -2); j < (jLoop ? nbhNodes.size() : -1); j++) {
-    //                     if(iLoop && (nbhNodes.get(i).neighbors.get(v).c >= 2 || (nbhNodes.get(i).isF() && checkF))) continue;
-    //                     if(jLoop && (nbhNodes.get(j).neighbors.get(v).c >= 2 || (nbhNodes.get(j).isF() && checkF))) continue;
-    //                     Set<Node> nodeSet = new HashSet<>();
-    //                     for(int l = 0; l < nbhNodes.size(); l++) {
-    //                         if(l == i || l == j) continue;
-    //                         nodeSet.add(nbhNodes.get(l));
-    //                     }
-    //                     int hash = hashNodes(nodeSet);
-    //                     if(hashToC.get(hash) == null) hashToC.put(hash, nodeSet);
-    //                     if(hashToP.get(hash) == null) hashToP.put(hash, new HashSet<>());
-    //                     hashToP.get(hash).add(v);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     for(int hash : hashToP.keySet()) {
-    //         Set<Node> visited = new HashSet<>();
-    //         for(Node v : hashToP.get(hash)) {
-    //             if(visited.contains(v)) continue;
-    //             visited.add(v);
-    //             List<Node> queue = new ArrayList<>();
-    //             queue.add(v);
-    //             for(int i = 0; i < queue.size(); i++) {
-    //                 for(Node w : queue.get(i).neighbors.keySet()) {
-    //                     if(visited.contains(w) || !hashToP.get(hash).contains(w)) continue;
-    //                     visited.add(w);
-    //                     queue.add(w);
-    //                 }
-    //             }
-    //             PathAntler pathAntler = new PathAntler(graph);
-    //             for(Node u : hashToC.get(hash)) {
-    //                 pathAntler.addC(u);
-    //             }
-    //             for(Node u : queue) {
-    //                 pathAntler.addP(u);
-    //             }
-    //             pathAntler.computeStatistics();
-    //             int pSize = pathAntler.getP().size();
-    //             pathAntler.extendP(true);
-    //             if(pSize == pathAntler.getP().size()) {
-    //                 nextPathAntlers.add(pathAntler);
-    //             }
-    //         }
-    //     }
-    //     Set<PathAntler> uniques = new HashSet<>(nextPathAntlers);
-    //     List<PathAntler> nonEmptyPathAntlers = new ArrayList<>();
-    //     for(PathAntler pathAntler : uniques) {
-    //         if(onlyLengthCheck) {
-    //             for(Node c : pathAntler.getC()) {
-    //                 if(hasFlower(pathAntler.getP(), c) >= pathAntler.getC().size()+1) {
-    //                     pathAntler.addA(c);
-    //                 }
-    //             }
-    //         } else {
-    //             pathAntler.computeMaxA();
-    //         }
-    //         if(!pathAntler.getA().isEmpty()) {
-    //             nonEmptyPathAntlers.add(pathAntler);
-    //         }
-    //     }
-    //     if(nonEmptyPathAntlers.isEmpty()) {
-    //         return new ArrayList<>(uniques);
-    //     } else {
-    //         return nonEmptyPathAntlers;
-    //     }
-    // }
+    public static PathAntler[] getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck) {
+        if(k == 1) {
+            PathAntler[] singlePathAntlers = getSingletonPathAntlers(graph);
+            PathAntler[] nonEmptyPathAntlers = new PathAntler[singlePathAntlers.length];
+            int paLength = 0;
+            for(PathAntler pathAntler : singlePathAntlers) {
+                if(pathAntler.getA().length >= 1) {
+                    nonEmptyPathAntlers[paLength++] = pathAntler;
+                }
+            }
+            if(paLength >= 1) {
+                return Arrays.copyOf(nonEmptyPathAntlers, paLength);
+            } else {
+                return singlePathAntlers;
+            }
+        }
+        PathAntler[] prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck);
+        if(prevPathAntlers.length >= 1 && prevPathAntlers[0].getA().length >= 1) {
+            return prevPathAntlers;
+        }
+        PathAntler[] nextPathAntlers = new PathAntler[prevPathAntlers.length];
+        int paLength = 0;
+        for(PathAntler pathAntler : prevPathAntlers) {
+            for(int i = 0; i < 2; i++) {
+                int nextNode = pathAntler.nextnodes[i];
+                if(nextNode == -1 || pathAntler.extended[i] ||
+                    graph.hasEdge(nextNode, nextNode) >= 1 ||
+                    graph.used[nextNode] == 'F') {
+                    pathAntler.extended[i] = true;
+                    continue;
+                }
+                if(graph.adj[nextNode].length >= 2*k+2) continue;
+                int nbInF = -1;
+                boolean possible = true;
+                int[] nbhNodes = new int[graph.adj[nextNode].length];
+                int nbh = 0;
+                for (int j = 0; j < graph.adj[nextNode].length; j++) {
+                    int v = graph.adj[nextNode][j];
+                    if(Arrays.binarySearch(pathAntler.getC(), v) >= 0) continue;
+                    if(Arrays.binarySearch(pathAntler.getP(), v) >= 0) continue;
+                    nbhNodes[nbh++] = v;
+                    if(graph.used[v] == 'F' && nbInF == -1) {
+                        nbInF = v;
+                        if(graph.hasEdge(nextNode, v) >= 2) {
+                            possible = false;
+                            break;
+                        }
+                        nbh--;
+                    } else if(graph.used[v] == 'F') {
+                        possible = false;
+                        break;
+                    }
+                    if (j + 1 < graph.adj[nextNode].length && graph.adj[nextNode][j + 1] == v) j++;
+                }
+                if(!possible) {
+                    pathAntler.extended[i] = true;
+                    continue;
+                }
+                nbhNodes = Arrays.copyOf(nbhNodes, nbh);
+                if(nbInF != -1 && nbh + pathAntler.getC().length == k) {
+                    pathAntler.extended[i] = true;
+                    PathAntler newPathAntler = new PathAntler(pathAntler);
+                    newPathAntler.addC(nbhNodes);
+                    if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[0]) >= 0)
+                        newPathAntler.nextnodes[0] = -1;
+                    if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[1]) >= 0)
+                        newPathAntler.nextnodes[1] = -1;
+                    newPathAntler.extendP(true);
+                    if(paLength >= nextPathAntlers.length)
+                        nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
+                    nextPathAntlers[paLength++] = newPathAntler;
+                    newPathAntler.test = "extended1";
+                    continue;
+                } else if(nbInF == -1 && nbh + pathAntler.getC().length == k+1) {
+                    for(int j = 0; j < nbhNodes.length; j++) {
+                        int v = nbhNodes[j];
+                        if(graph.hasEdge(v, nextNode) >= 2) continue;
+                        pathAntler.extended[i] = true;
+                        PathAntler newPathAntler = new PathAntler(pathAntler);
+                        int[] toAdd = new int[nbhNodes.length-1];
+                        System.arraycopy(nbhNodes, 0, toAdd, 0, j);
+                        System.arraycopy(nbhNodes, j+1, toAdd, j, nbhNodes.length-j-1);
+                        newPathAntler.addC(toAdd);
+                        if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[0]) >= 0)
+                            newPathAntler.nextnodes[0] = -1;
+                        if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[1]) >= 0)
+                            newPathAntler.nextnodes[1] = -1;
+                        newPathAntler.extendP(true);
+                        if(paLength >= nextPathAntlers.length)
+                            nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
+                        nextPathAntlers[paLength++] = newPathAntler;
+                        newPathAntler.test = "extended2";
+                    }
+                } else if(nbInF == -1 && nbh + pathAntler.getC().length == k) {
+                    pathAntler.extended[i] = true;
+                    PathAntler newPathAntler = new PathAntler(pathAntler);
+                    newPathAntler.addC(nbhNodes);
+                    if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[0]) >= 0)
+                        newPathAntler.nextnodes[0] = -1;
+                    if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[1]) >= 0)
+                        newPathAntler.nextnodes[1] = -1;
+                    newPathAntler.extendP(true);
+                    if(paLength >= nextPathAntlers.length)
+                        nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
+                    nextPathAntlers[paLength++] = newPathAntler;
+                    newPathAntler.test = "extended3";
+                }
+            }
+            if((!pathAntler.extended[0] && pathAntler.nextnodes[0] != -1) || (!pathAntler.extended[1] && pathAntler.nextnodes[1] != -1)) {
+                if(paLength >= nextPathAntlers.length)
+                    nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
+                nextPathAntlers[paLength++] = pathAntler;
+                pathAntler.test = "not_fully_extended";
+            }
+        }
+        Map<Integer, Integer> hashTable = new HashMap<>();
+        Map<Integer, int[]> hashToC = new HashMap<>();
+        Map<Integer, int[]> hashToP = new HashMap<>();
+        for(int v = 0; v < graph.n; v++) {
+            if(graph.adj[v].length <= 2*k+2) {
+                int[] nbh = new int[graph.adj[v].length];
+                int nbhSize = graph.N(v, nbh);
+                nbh = Arrays.copyOf(nbh, nbhSize);
+                if(nbhSize >= k && nbhSize <= k+2) {
+                    for(int i = nbhSize >= k+1 ? 0 : -2; i < (nbhSize >= k+1 ? nbhSize : -1); i++) {
+                        for(int j = nbhSize >= k+2 ? i+1 : -2; j < (nbhSize >= k+2 ? nbhSize : -1); j++) {
+                            if(nbhSize >= k+1 && graph.hasEdge(nbh[i], v) >= 2) continue;
+                            if(nbhSize >= k+2 && graph.hasEdge(nbh[j], v) >= 2) continue;
+                            int hash = 0;
+                            boolean possible = true;
+                            int[] nbhC = new int[k];
+                            int index = 0;
+                            for(int w : nbh) {
+                                if((nbhSize >= k+1 && w == nbh[i]) || (nbhSize >= k+2 && w == nbh[j])) continue;
+                                if(graph.used[w] == 'F') {
+                                    possible = false;
+                                    break;
+                                }
+                                if(!hashTable.containsKey(hash*graph.n+w)) {
+                                    hashTable.put(hash*graph.n+w, hashTable.size()+1);
+                                }
+                                hash = hashTable.get(hash*graph.n+w);
+                                nbhC[index++] = w;
+                            }
+                            if(possible) {
+                                if(!hashToC.containsKey(hash)) hashToC.put(hash, nbhC);
+                                if(!hashToP.containsKey(hash)) hashToP.put(hash, new int[0]);
+                                int[] p = hashToP.get(hash);
+                                int[] newP = new int[p.length+1];
+                                System.arraycopy(p, 0, newP, 0, p.length);
+                                newP[newP.length-1] = v;
+                                hashToP.put(hash, newP);
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        }
+        for(int hash : hashToP.keySet()) {
+            int[] pathnodes = hashToP.get(hash);
+            int[] headnodes = hashToC.get(hash);
+            boolean[] visited = new boolean[pathnodes.length];
+            int[] queue = new int[pathnodes.length];
+            int start = 0;
+            int index = 0;
+            int end = 0;
+            for(int i = 0; i < pathnodes.length; i++) {
+                if(visited[i]) continue;
+                visited[i] = true;
+                start = index;
+                queue[end++] = pathnodes[i];
+                while(index < end) {
+                    int node = queue[index++];
+                    for(int nb : graph.adj[node]) {
+                        int loc = Arrays.binarySearch(pathnodes, nb);
+                        if(loc < 0 || visited[loc]) continue;
+                        visited[loc] = true;
+                        queue[end++] = nb;
+                    }
+                }
+                int[] p = new int[end-start];
+                System.arraycopy(queue, start, p, 0, end-start);
+                PathAntler pathAntler = new PathAntler(graph, new int[0], headnodes, p);
+                pathAntler.computeStatistics();
+                int size = pathAntler.getP().length;
+                pathAntler.extendP(true);
+                if(pathAntler.getP().length != size) {
+                    continue;
+                }
+                pathAntler.computeMaxA();
+                if(paLength >= nextPathAntlers.length)
+                    nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
+                nextPathAntlers[paLength++] = pathAntler;
+                pathAntler.test = "created";
+            }
+        }
+        nextPathAntlers = Arrays.copyOf(nextPathAntlers, paLength);
+        nextPathAntlers = new HashSet<>(Arrays.asList(nextPathAntlers)).toArray(new PathAntler[0]);
+        PathAntler[] nonEmptyPathAntlers = new PathAntler[nextPathAntlers.length];
+        int paLength2 = 0;
+        for(PathAntler pathAntler : nextPathAntlers) {
+            if(onlyLengthCheck) {
+                for(int c : pathAntler.getC()) {
+                    if(hasFlower(pathAntler.getP(), c, graph) >= pathAntler.getC().length+1) {
+                        pathAntler.addA(c);
+                    }
+                }
+            } else {
+                pathAntler.computeMaxA();
+            }
+            if(pathAntler.getA().length >= 1) {
+                nonEmptyPathAntlers[paLength2++] = pathAntler;
+            }
+        }
+        if(paLength2 >= 1) {
+            return Arrays.copyOf(nonEmptyPathAntlers, paLength2);
+        } else {
+            return nextPathAntlers;
+        }
+    }
 
     // public static List<FVC> find2Antlers(Graph graph, boolean checkF) {
     //     // TODO finish this with actual path antler 1 handling instead of 2

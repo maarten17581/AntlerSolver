@@ -24,6 +24,11 @@ public class GraphAlgorithmTest {
         return new Graph(adj);
     }
 
+    public Graph makeTestGraph2() {
+        int[][] adj = new int[][]{{1,2,6},{0,2,5,6},{0,1,3,5,5},{2,4,4,5},{3,3,5,5},{1,2,2,3,4,4,6},{0,1,5},{}};
+        return new Graph(adj);
+    }
+
     public Pair<FVC, Graph> makeTestFVC() {
         Graph graph = new Graph("test");
         graph.addNode(0);
@@ -97,27 +102,19 @@ public class GraphAlgorithmTest {
         assertEquals(4, pathAntlers[3].getC()[0], "Singleton Path Antler test 20 failed");
         assertEquals(1, pathAntlers[3].getP().length, "Singleton Path Antler test 21 failed");
         assertEquals(3, pathAntlers[3].getP()[0], "Singleton Path Antler test 22 failed");
-        long graphTime = -System.currentTimeMillis();
-        Graph randomGraph = GraphAlgorithm.randomGraph(10000, 0.1);
-        graphTime += System.currentTimeMillis();
-        System.out.println(graphTime);
-        long time = -System.currentTimeMillis();
-        PathAntler[] pathAntlers2 = GraphAlgorithm.getSingletonPathAntlers(randomGraph);
-        time += System.currentTimeMillis();
-        System.out.println(time);
     }
 
     @Test
     public void testKPathAntlers() {
-        Graph graph = makeTestGraph();
-        graph.addEdge(0, 6);
-        graph.addEdge(5, 6);
-        graph.removeEdge(2, 2);
-        assertEquals(6, GraphAlgorithm.getKPathAntlers(1, graph, false, false).size(), "K Path Antler test 1 failed");
-        assertEquals(18, GraphAlgorithm.getKPathAntlers(2, graph, false, false).size(), "K Path Antler test 2 failed");
-        assertEquals(16, GraphAlgorithm.getKPathAntlers(3, graph, false, false).size(), "K Path Antler test 3 failed");
-        assertEquals(8, GraphAlgorithm.getKPathAntlers(4, graph, false, false).size(), "K Path Antler test 4 failed");
-        assertEquals(0, GraphAlgorithm.getKPathAntlers(5, graph, false, false).size(), "K Path Antler test 5 failed");
+        Graph graph = makeTestGraph2();
+        for(PathAntler antler : GraphAlgorithm.getKPathAntlers(3, graph, false)) {
+            System.out.println(antler);
+        }
+        assertEquals(6, GraphAlgorithm.getKPathAntlers(1, graph, false).length, "K Path Antler test 1 failed");
+        assertEquals(18, GraphAlgorithm.getKPathAntlers(2, graph, false).length, "K Path Antler test 2 failed");
+        assertEquals(16, GraphAlgorithm.getKPathAntlers(3, graph, false).length, "K Path Antler test 3 failed");
+        assertEquals(8, GraphAlgorithm.getKPathAntlers(4, graph, false).length, "K Path Antler test 4 failed");
+        assertEquals(0, GraphAlgorithm.getKPathAntlers(5, graph, false).length, "K Path Antler test 5 failed");
     }
 
     @Test

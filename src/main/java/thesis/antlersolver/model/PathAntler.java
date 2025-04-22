@@ -21,6 +21,7 @@ public class PathAntler {
     public int[] nextnodes;
     public boolean[] extended;
     public boolean isCyclic;
+    public String test = "";
 
     public int[] getA() {
         return A;
@@ -58,6 +59,44 @@ public class PathAntler {
         }
     }
 
+    private void add(int[] v, char set) {
+        int[] S = new int[0];
+        if(set == 'A') {
+            S = A;
+        } else if(set == 'C') {
+            S = C;
+        } else if(set == 'P') {
+            S = P;
+        }
+        int[] a = new int[S.length + v.length];
+        int i = 0;
+        int j = 0;
+        while(i < S.length && j < v.length) {
+            if(S[i] <= v[j]) {
+                a[i+j] = S[i];
+                i++;
+            } else if(S[i] > v[j]) {
+                a[i+j] = v[j];
+                j++;
+            }
+        }
+        while(i < S.length) {
+            a[i+j] = S[i];
+            i++;
+        }
+        while(j < v.length) {
+            a[i+j] = v[j];
+            j++;
+        }
+        if(set == 'A') {
+            A = a;
+        } else if(set == 'C') {
+            C = a;
+        } else if(set == 'P') {
+            P = a;
+        }
+    }
+
     private void remove(int v, char set) {
         int[] S = new int[0];
         if(set == 'A') {
@@ -85,11 +124,23 @@ public class PathAntler {
         add(v, 'A');
     }
 
+    public void addA(int[] v) {
+        add(v, 'A');
+    }
+
     public void addC(int v) {
         add(v, 'C');
     }
 
+    public void addC(int[] v) {
+        add(v, 'C');
+    }
+
     public void addP(int v) {
+        add(v, 'P');
+    }
+
+    public void addP(int[] v) {
         add(v, 'P');
     }
 
@@ -197,15 +248,15 @@ public class PathAntler {
                 int step = -1;
                 int pConnect = 0;
                 int stepConnect = 0;
-                for(int j : graph.adj[nextnodes[i]]) {
+                for(int j = 0; j < graph.adj[nextnodes[i]].length; j++) {
                     if(j+1 < graph.adj[nextnodes[i]].length && graph.adj[nextnodes[i]][j] == graph.adj[nextnodes[i]][j+1]) continue;
-                    if(setContained(j, 'C')) continue;
-                    if(setContained(j, 'P')) {
+                    if(setContained(graph.adj[nextnodes[i]][j], 'C')) continue;
+                    if(setContained(graph.adj[nextnodes[i]][j], 'P')) {
                         pConnect++;
                         continue;
                     }
                     if(j == 0 || graph.adj[nextnodes[i]][j-1] != graph.adj[nextnodes[i]][j]) {
-                        step = j;
+                        step = graph.adj[nextnodes[i]][j];
                     } else {
                         stepConnect++;
                     }
@@ -236,11 +287,11 @@ public class PathAntler {
         System.arraycopy(P, 0, allNodes, C.length, P.length);
         Graph pathAntlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
         A = new int[0];
-        for(int v : C) {
-            if(GraphAlgorithm.hasFlower(P, v, graph) >= C.length+1) {
-                addA(v);
-            } else if(GraphAlgorithm.smartDisjointFVS(v, C.length, pathAntlerGraph) == null) {
-                addA(v);
+        for(int i = 0; i < C.length; i++) {
+            if(GraphAlgorithm.hasFlower(P, C[i], graph) >= C.length+1) {
+                addA(C[i]);
+            } else if(GraphAlgorithm.smartDisjointFVS(i, C.length, pathAntlerGraph) == null) {
+                addA(C[i]);
             }
         }
     }
@@ -274,6 +325,6 @@ public class PathAntler {
 
     @Override
     public String toString() {
-        return "A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P);
+        return test+" A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P);
     }
 }
