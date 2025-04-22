@@ -156,12 +156,14 @@ public class GraphAlgorithmTest {
         Graph graph = makeTestGraph();
         graph.addEdge(0, 6);
         graph.addEdge(5, 6);
+        graph.addEdge(3, 5);
         graph.removeEdge(2, 2);
         assertEquals(6, GraphAlgorithm.getKPathAntlers(1, graph, false, false).size(), "K Path Antler test 1 failed");
         assertEquals(18, GraphAlgorithm.getKPathAntlers(2, graph, false, false).size(), "K Path Antler test 2 failed");
-        assertEquals(16, GraphAlgorithm.getKPathAntlers(3, graph, false, false).size(), "K Path Antler test 3 failed");
-        assertEquals(8, GraphAlgorithm.getKPathAntlers(4, graph, false, false).size(), "K Path Antler test 4 failed");
-        assertEquals(0, GraphAlgorithm.getKPathAntlers(5, graph, false, false).size(), "K Path Antler test 5 failed");
+        assertEquals(19, GraphAlgorithm.getKPathAntlers(3, graph, false, false).size(), "K Path Antler test 3 failed");
+        assertEquals(10, GraphAlgorithm.getKPathAntlers(4, graph, false, false).size(), "K Path Antler test 4 failed");
+        assertEquals(1, GraphAlgorithm.getKPathAntlers(5, graph, false, false).size(), "K Path Antler test 5 failed");
+        assertEquals(0, GraphAlgorithm.getKPathAntlers(6, graph, false, false).size(), "K Path Antler test 6 failed");
     }
 
     @Test
