@@ -169,24 +169,6 @@ public class GraphAlgorithm {
         return Arrays.copyOf(pathAntlers, length);
     }
 
-    // public static Map<Pair<Node, Integer>, Integer> hashTable = new HashMap<>();
-    // public static int maxHash = 1;
-
-    // public static int hashNodes(Set<Node> nodes) {
-    //     List<Node> nodeList = new ArrayList<>(nodes);
-    //     Collections.sort(nodeList, (n1, n2) -> n1.id-n2.id);
-    //     int hash = 0;
-    //     for(Node v : nodeList) {
-    //         Pair<Node, Integer> nextPair = new Pair<Node,Integer>(v, hash);
-    //         if(hashTable.get(nextPair) == null) {
-    //             hashTable.put(nextPair, maxHash);
-    //             maxHash++;
-    //         }
-    //         hash = hashTable.get(nextPair);
-    //     }
-    //     return hash;
-    // }
-
     public static PathAntler[] getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck) {
         if(k == 1) {
             PathAntler[] singlePathAntlers = getSingletonPathAntlers(graph);
@@ -258,7 +240,6 @@ public class GraphAlgorithm {
                     if(paLength >= nextPathAntlers.length)
                         nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                     nextPathAntlers[paLength++] = newPathAntler;
-                    newPathAntler.test = "extended1";
                     continue;
                 } else if(nbInF == -1 && nbh + pathAntler.getC().length == k+1) {
                     for(int j = 0; j < nbhNodes.length; j++) {
@@ -278,7 +259,6 @@ public class GraphAlgorithm {
                         if(paLength >= nextPathAntlers.length)
                             nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                         nextPathAntlers[paLength++] = newPathAntler;
-                        newPathAntler.test = "extended2";
                     }
                 } else if(nbInF == -1 && nbh + pathAntler.getC().length == k) {
                     pathAntler.extended[i] = true;
@@ -292,14 +272,12 @@ public class GraphAlgorithm {
                     if(paLength >= nextPathAntlers.length)
                         nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                     nextPathAntlers[paLength++] = newPathAntler;
-                    newPathAntler.test = "extended3";
                 }
             }
             if((!pathAntler.extended[0] && pathAntler.nextnodes[0] != -1) || (!pathAntler.extended[1] && pathAntler.nextnodes[1] != -1)) {
                 if(paLength >= nextPathAntlers.length)
                     nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                 nextPathAntlers[paLength++] = pathAntler;
-                pathAntler.test = "not_fully_extended";
             }
         }
         Map<Integer, Integer> hashTable = new HashMap<>();
@@ -374,14 +352,11 @@ public class GraphAlgorithm {
                 pathAntler.computeStatistics();
                 int size = pathAntler.getP().length;
                 pathAntler.extendP(true);
-                if(pathAntler.getP().length != size) {
-                    continue;
-                }
+                if(pathAntler.getP().length != size) continue;
                 pathAntler.computeMaxA();
                 if(paLength >= nextPathAntlers.length)
                     nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                 nextPathAntlers[paLength++] = pathAntler;
-                pathAntler.test = "created";
             }
         }
         nextPathAntlers = Arrays.copyOf(nextPathAntlers, paLength);
@@ -389,15 +364,7 @@ public class GraphAlgorithm {
         PathAntler[] nonEmptyPathAntlers = new PathAntler[nextPathAntlers.length];
         int paLength2 = 0;
         for(PathAntler pathAntler : nextPathAntlers) {
-            if(onlyLengthCheck) {
-                for(int c : pathAntler.getC()) {
-                    if(hasFlower(pathAntler.getP(), c, graph) >= pathAntler.getC().length+1) {
-                        pathAntler.addA(c);
-                    }
-                }
-            } else {
-                pathAntler.computeMaxA();
-            }
+            pathAntler.computeMaxA(onlyLengthCheck);
             if(pathAntler.getA().length >= 1) {
                 nonEmptyPathAntlers[paLength2++] = pathAntler;
             }
@@ -422,80 +389,143 @@ public class GraphAlgorithm {
     //     return null;
     // }
 
-    // private static void extendC(Set<Node> c, int i, int k, List<Node> nodes, Set<Set<Node>> extension, boolean checkF) {
-    //     if(c.size() == k) {
-    //         extension.add(new HashSet<>(c));
-    //         return;
-    //     }
-    //     for(int j = i; j < nodes.size(); j++) {
-    //         if((!checkF || !nodes.get(j).isF()) && !c.contains(nodes.get(j))) {
-    //             c.add(nodes.get(j));
-    //             extendC(c, j+1, k, nodes, extension, checkF);
-    //             c.remove(nodes.get(j));
-    //         }
-    //     }
-    // }
+    private static int[][] extendC(int i, int[] c, int j, int k, Graph graph) {
+        if(j == k) {
+            return new int[][]{c.clone()};
+        }
+        int[][] extensions = new int[0][0];
+        int length = 0;
+        for(int next = i; next < graph.n; next++) {
+            if(graph.used[next] == 0 && graph.adj[next].length >= 1 && Arrays.binarySearch(c, next) < 0) {
+                int temp = j;
+                while(temp >= 1 && c[temp-1] > next) {
+                    c[temp] = c[temp-1];
+                    temp--;
+                }
+                c[temp] = next;
+                int[][] extension = extendC(next+1, c, j+1, k, graph);
+                for(int reset = temp; reset < j-1; reset++) {
+                    c[reset] = c[reset+1];
+                }
+                if(length+extension.length >= extensions.length)
+                    extensions = Arrays.copyOf(extensions, (int)Math.round(1.5*(length+extension.length)));
+                for(int[] extend : extension) extensions[length++] = extend;
+            }
+        }
+        return Arrays.copyOf(extensions, length);
+    }
 
-    // public static List<FVC> findKAntlers(int k, Graph graph, boolean onlyFlower, boolean checkF) {
-    //     // Assumes that no path-antlers of size k exist in the graph for efficiency guarentee
-    //     Set<Set<Node>> Cs = new HashSet<>();
-    //     for(Node v : graph.nodes.values()) {
-    //         if(v.nbhSize <= k+1) {
-    //             Node nbInF = null;
-    //             if(checkF) {
-    //                 boolean possible = true;
-    //                 for(Edge e : v.neighbors.values()) {
-    //                     if(e.t.isF() && nbInF == null) {
-    //                         nbInF = e.t;
-    //                         if(e.c >= 2) {
-    //                             possible = false;
-    //                             break;
-    //                         }
-    //                     } else if(e.t.isF()) {
-    //                         possible = false;
-    //                         break;
-    //                     }
-    //                 }
-    //                 if(!possible) {
-    //                     continue;
-    //                 }
-    //             }
-    //             if(nbInF != null) {
-    //                 Set<Node> c = new HashSet<>(v.neighbors.keySet());
-    //                 c.remove(nbInF);
-    //                 Cs.add(c);
-    //                 continue;
-    //             }
-    //             for(Edge e : v.neighbors.values()) {
-    //                 if(e.c >= 2) continue;
-    //                 Set<Node> c = new HashSet<>(v.neighbors.keySet());
-    //                 c.remove(e.t);
-    //                 Cs.add(c);
-    //             }
-    //             if(v.nbhSize <= k) {
-    //                 Cs.add(new HashSet<>(v.neighbors.keySet()));
-    //             }
-    //         }
-    //     }
-    //     Map<Integer, Set<Node>> ExtendedCs = new HashMap<>();
-    //     List<Node> nodes = new ArrayList<>(graph.nodes.values());
-    //     for(Set<Node> c : Cs) {
-    //         Set<Set<Node>> extension = new HashSet<>();
-    //         extendC(c, 0, k, nodes, extension, checkF);
-    //         for(Set<Node> extendedC : extension) {
-    //             ExtendedCs.put(hashNodes(extendedC), extendedC);
-    //         }
-    //     }
-    //     List<FVC> nonEmptyFVC = new ArrayList<>();
-    //     for(Set<Node> C : ExtendedCs.values()) {
-    //         FVC fvc = new FVC(graph, C);
-    //         fvc.computeMaxA(onlyFlower);
-    //         if(!fvc.getA().isEmpty()) {
-    //             nonEmptyFVC.add(fvc);
-    //         }
-    //     }
-    //     return nonEmptyFVC;
-    // }
+    public static FVC[] findKAntlers(int k, Graph graph, boolean onlyFlower) {
+        // Assumes that no path-antlers of size k exist in the graph for efficiency guarentee
+        int[][] Cs = new int[(k+2)*graph.n][];
+        int length = 0;
+        for(int v = 0; v < graph.n; v++) {
+            if(graph.adj[v].length >= 3 && graph.adj[v].length <= 2*k+1) {
+                int[] nbh = new int[graph.adj[v].length];
+                int nbhSize = graph.N(v, nbh);
+                nbh = Arrays.copyOf(nbh, nbhSize);
+                int nbInF = -1;
+                boolean possible = true;
+                for(int w : nbh) {
+                    if(graph.used[w] == 'F' && nbInF == -1) {
+                        nbInF = w;
+                        if(graph.hasEdge(v, w) >= 2) {
+                            possible = false;
+                            break;
+                        }
+                    }
+                    if(graph.used[w] == 'F') {
+                        possible = false;
+                        break;
+                    }
+                }
+                if(!possible) continue;
+                if(nbhSize <= k+1) {
+                    if(nbInF != -1) {
+                        int[] c = new int[nbhSize-1];
+                        int index = 0;
+                        for(int w : nbh) {
+                            if(w == nbInF) continue;
+                            c[index++] = w;
+                        }
+                        Cs[length++] = c;
+                    } else {
+                        for(int u : nbh) {
+                            if(graph.hasEdge(v, u) >= 2) continue;
+                            int[] c = new int[nbhSize-1];
+                            int index = 0;
+                            for(int w : nbh) {
+                                if(w == u) continue;
+                                c[index++] = w;
+                            }
+                            Cs[length++] = c;
+                        }
+                    }
+                }
+                if(nbhSize <= k && nbInF == -1) {
+                    Cs[length++] = nbh;
+                }
+            }
+        }
+        Cs = Arrays.copyOf(Cs, length);
+        Arrays.sort(Cs, (a, b) -> {
+            if(a.length != b.length) return a.length - b.length;
+            for(int i = 0; i < a.length; i++) {
+                if(a[i] != b[i]) return a[i] - b[i];
+            }
+            return 0;
+        });
+        int[][] tempCs = new int[Cs.length][0];
+        length = 0;
+        for(int i = 0; i < Cs.length; i++) {
+            tempCs[length++] = Cs[i];
+            while(true) {
+                if(i+1 >= Cs.length) break;
+                if(Arrays.equals(Cs[i], Cs[i+1])) i++;
+                else break;
+            }
+        }
+        Cs = Arrays.copyOf(tempCs, length);
+        int[][] ExtendedCs = new int[0][0];
+        length = 0;
+        for(int[] c : Cs) {
+            int[][] extension = extendC(0, Arrays.copyOf(c, k), c.length, k, graph);
+            if(length+extension.length >= ExtendedCs.length)
+                ExtendedCs = Arrays.copyOf(ExtendedCs, (int)Math.round(1.5*(length+extension.length)));
+            for(int[] extend : extension) ExtendedCs[length++] = extend;
+        }
+        ExtendedCs = Arrays.copyOf(ExtendedCs, length);
+        Arrays.sort(ExtendedCs, (a, b) -> {
+            if(a.length != b.length) return a.length - b.length;
+            for(int i = 0; i < a.length; i++) {
+                if(a[i] != b[i]) return a[i] - b[i];
+            }
+            return 0;
+        });
+        int[][] tempExtendedCs = new int[ExtendedCs.length][0];
+        length = 0;
+        for(int i = 0; i < Cs.length; i++) {
+            tempExtendedCs[length++] = Cs[i];
+            while(true) {
+                if(i+1 >= Cs.length) break;
+                if(Arrays.equals(Cs[i], Cs[i+1])) i++;
+                else break;
+            }
+        }
+        ExtendedCs = Arrays.copyOf(tempExtendedCs, length);
+        FVC[] nonEmptyFVC = new FVC[10];
+        length = 0;
+        for(int[] c : ExtendedCs) {
+            FVC fvc = new FVC(graph, c);
+            fvc.computeMaxA(onlyFlower);
+            if(fvc.getA().length >= 1) {
+                if(length >= nonEmptyFVC.length)
+                    nonEmptyFVC = Arrays.copyOf(nonEmptyFVC, (int)Math.round(1.5*(length)));
+                nonEmptyFVC[length++] = fvc;
+            }
+        }
+        return Arrays.copyOf(nonEmptyFVC, length);
+    }
 
     private static Pair<Integer, Integer> hasFlower_dfs(int r, int v, int[] F, boolean[] visited, Graph graph) {
         int i = Arrays.binarySearch(F, r);

@@ -21,7 +21,6 @@ public class PathAntler {
     public int[] nextnodes;
     public boolean[] extended;
     public boolean isCyclic;
-    public String test = "";
 
     public int[] getA() {
         return A;
@@ -282,6 +281,10 @@ public class PathAntler {
     }
 
     public void computeMaxA() {
+        computeMaxA(false);
+    }
+
+    public void computeMaxA(boolean onlyLengthCheck) {
         int[] allNodes = new int[C.length+P.length];
         System.arraycopy(C, 0, allNodes, 0, C.length);
         System.arraycopy(P, 0, allNodes, C.length, P.length);
@@ -290,7 +293,7 @@ public class PathAntler {
         for(int i = 0; i < C.length; i++) {
             if(GraphAlgorithm.hasFlower(P, C[i], graph) >= C.length+1) {
                 addA(C[i]);
-            } else if(GraphAlgorithm.smartDisjointFVS(i, C.length, pathAntlerGraph) == null) {
+            } else if(!onlyLengthCheck && GraphAlgorithm.smartDisjointFVS(i, C.length, pathAntlerGraph) == null) {
                 addA(C[i]);
             }
         }
@@ -325,6 +328,6 @@ public class PathAntler {
 
     @Override
     public String toString() {
-        return test+" A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P);
+        return "A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P);
     }
 }

@@ -135,16 +135,20 @@ public class FVC {
     }
 
     public void computeMaxA() {
+        computeMaxA(false);
+    }
+
+    public void computeMaxA(boolean onlyFlower) {
         int[] allNodes = new int[C.length+F.length];
         System.arraycopy(C, 0, allNodes, 0, C.length);
         System.arraycopy(F, 0, allNodes, C.length, F.length);
         Graph pathAntlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
         A = new int[0];
-        for(int v : C) {
-            if(GraphAlgorithm.hasFlower(F, v, graph) >= C.length) {
-                addA(v);
-            } else if(GraphAlgorithm.smartDisjointFVS(v, C.length-1, pathAntlerGraph) == null) {
-                addA(v);
+        for(int i = 0; i < C.length; i++) {
+            if(GraphAlgorithm.hasFlower(F, C[i], graph) >= C.length) {
+                addA(C[i]);
+            } else if(!onlyFlower && GraphAlgorithm.smartDisjointFVS(i, C.length-1, pathAntlerGraph) == null) {
+                addA(C[i]);
             }
         }
     }
