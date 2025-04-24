@@ -1,24 +1,16 @@
 package thesis.antlersolver.algorithm;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 import fvs_wata_orz.Graph;
 import fvs_wata_orz.tc.wata.data.IntArray;
-import thesis.antlersolver.command.Command;
-import thesis.antlersolver.command.CompositeCommand;
-import thesis.antlersolver.command.RemoveNodeCommand;
 import thesis.antlersolver.model.FVC;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
-import thesis.antlersolver.statistics.Statistics;
 
 public class GraphAlgorithm {
 
@@ -47,6 +39,8 @@ public class GraphAlgorithm {
         for(int i : graph.adj[v]) {
             if(i == p) continue;
             if(visited[i] || (graph.hasEdge(i, v) >= 2)) return false;
+            visited[i] = true;
+            if(!isAcyclic_dfs(i, v, visited, graph)) return false;
         }
         return true;
     }
@@ -153,6 +147,7 @@ public class GraphAlgorithm {
                 }
                 int[] p = new int[end-start];
                 System.arraycopy(queue, start, p, 0, end-start);
+                Arrays.sort(p);
                 PathAntler pa = new PathAntler(graph, new int[0], new int[]{i}, p);
                 boolean nonEmptyA = (p.length >= 4);
                 nonEmptyA = (nonEmptyA || (p.length >= 3 && pa.isCyclic));
@@ -189,7 +184,7 @@ public class GraphAlgorithm {
         if(prevPathAntlers.length >= 1 && prevPathAntlers[0].getA().length >= 1) {
             return prevPathAntlers;
         }
-        PathAntler[] nextPathAntlers = new PathAntler[prevPathAntlers.length];
+        PathAntler[] nextPathAntlers = new PathAntler[prevPathAntlers.length+10];
         int paLength = 0;
         for(PathAntler pathAntler : prevPathAntlers) {
             for(int i = 0; i < 2; i++) {
@@ -348,12 +343,12 @@ public class GraphAlgorithm {
                 }
                 int[] p = new int[end-start];
                 System.arraycopy(queue, start, p, 0, end-start);
+                Arrays.sort(p);
                 PathAntler pathAntler = new PathAntler(graph, new int[0], headnodes, p);
                 pathAntler.computeStatistics();
                 int size = pathAntler.getP().length;
                 pathAntler.extendP(true);
                 if(pathAntler.getP().length != size) continue;
-                pathAntler.computeMaxA();
                 if(paLength >= nextPathAntlers.length)
                     nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                 nextPathAntlers[paLength++] = pathAntler;
@@ -396,7 +391,7 @@ public class GraphAlgorithm {
         int[][] extensions = new int[0][0];
         int length = 0;
         for(int next = i; next < graph.n; next++) {
-            if(graph.used[next] == 0 && graph.adj[next].length >= 1 && Arrays.binarySearch(c, next) < 0) {
+            if(graph.used[next] == 0 && graph.adj[next].length >= 3 && Arrays.binarySearch(c, next) < 0) {
                 int temp = j;
                 while(temp >= 1 && c[temp-1] > next) {
                     c[temp] = c[temp-1];
@@ -404,7 +399,7 @@ public class GraphAlgorithm {
                 }
                 c[temp] = next;
                 int[][] extension = extendC(next+1, c, j+1, k, graph);
-                for(int reset = temp; reset < j-1; reset++) {
+                for(int reset = temp; reset < j; reset++) {
                     c[reset] = c[reset+1];
                 }
                 if(length+extension.length >= extensions.length)
@@ -415,7 +410,7 @@ public class GraphAlgorithm {
         return Arrays.copyOf(extensions, length);
     }
 
-    public static FVC[] findKAntlers(int k, Graph graph, boolean onlyFlower) {
+    public static FVC[] getKAntlers(int k, Graph graph, boolean onlyFlower) {
         // Assumes that no path-antlers of size k exist in the graph for efficiency guarentee
         int[][] Cs = new int[(k+2)*graph.n][];
         int length = 0;
@@ -504,18 +499,18 @@ public class GraphAlgorithm {
         });
         int[][] tempExtendedCs = new int[ExtendedCs.length][0];
         length = 0;
-        for(int i = 0; i < Cs.length; i++) {
-            tempExtendedCs[length++] = Cs[i];
+        for(int i = 0; i < ExtendedCs.length; i++) {
+            tempExtendedCs[length++] = ExtendedCs[i];
             while(true) {
-                if(i+1 >= Cs.length) break;
-                if(Arrays.equals(Cs[i], Cs[i+1])) i++;
+                if(i+1 >= ExtendedCs.length) break;
+                if(Arrays.equals(ExtendedCs[i], ExtendedCs[i+1])) i++;
                 else break;
             }
         }
         ExtendedCs = Arrays.copyOf(tempExtendedCs, length);
         FVC[] nonEmptyFVC = new FVC[10];
         length = 0;
-        for(int[] c : ExtendedCs) {
+        for(int[] c : ExtendedCs) {          
             FVC fvc = new FVC(graph, c);
             fvc.computeMaxA(onlyFlower);
             if(fvc.getA().length >= 1) {
@@ -529,6 +524,7 @@ public class GraphAlgorithm {
 
     private static Pair<Integer, Integer> hasFlower_dfs(int r, int v, int[] F, boolean[] visited, Graph graph) {
         int i = Arrays.binarySearch(F, r);
+        if(i < 0) System.out.println(Arrays.toString(F)+ " " + i + " " + r + " " + v);
         visited[i] = true;
         int subtreeCycles = 0;
         int extraCycles = 0;

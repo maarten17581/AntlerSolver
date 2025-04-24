@@ -1,12 +1,6 @@
 package thesis.antlersolver.model;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
 
 import fvs_wata_orz.Graph;
 import fvs_wata_orz.tc.wata.util.Utils;
@@ -40,7 +34,6 @@ public class FVC {
             S = F;
         }
         int i = Utils.upperBound(S, v);
-		if (i >= 1 && S[i - 1] == v) return;
 		int[] a = new int[S.length + 1];
 		System.arraycopy(S, 0, a, 0, i);
 		a[i] = v;

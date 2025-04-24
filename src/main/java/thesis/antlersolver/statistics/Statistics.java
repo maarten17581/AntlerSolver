@@ -1,5 +1,7 @@
 package thesis.antlersolver.statistics;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +49,26 @@ public class Statistics {
                 padding += " ";
             }
             System.out.println(key+":"+padding+info.get(key));
+        }
+    }
+
+    public void print(String path) {
+        String[] keys = info.keySet().toArray(new String[0]);
+        Arrays.sort(keys);
+        StringBuilder sb = new StringBuilder();
+        for(String key : keys) {
+            String padding = "";
+            for(int i = key.length(); i < pad; i++) {
+                padding += " ";
+            }
+            sb.append(key).append(":").append(padding).append(info.get(key)).append("\n");
+        }
+        try {
+            FileWriter fw = new FileWriter(new File(path));
+            fw.write(sb.toString());
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
