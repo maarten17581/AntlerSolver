@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import fvs_wata_orz.FPTBranchingSolver;
 import fvs_wata_orz.Graph;
+import fvs_wata_orz.HalfIntegralRelax;
 import fvs_wata_orz.ReductionRoot;
 import fvs_wata_orz.tc.wata.debug.Debug;
 import thesis.antlersolver.io.FileReader;
@@ -46,8 +47,8 @@ public class AntlerSolver {
             String[] names = graphPairs.b;
             Integer[] sortIndices = new Integer[graphs.length];
             for(int i = 0; i < graphs.length; i++) sortIndices[i] = i;
-            // Arrays.sort(sortIndices, (i1, i2) -> 
-            //     graphs[i1].n() == graphs[i2].n() ? graphs[i1].m()-graphs[i2].m() : graphs[i1].n()-graphs[i2].n());
+            Arrays.sort(sortIndices, (i1, i2) -> 
+                graphs[i1].n() == graphs[i2].n() ? graphs[i1].m()-graphs[i2].m() : graphs[i1].n()-graphs[i2].n());
             for(int gCount = 0; gCount < graphs.length; gCount++) {
                 int g = sortIndices[gCount];
                 Graph graph = graphs[g];
@@ -66,6 +67,7 @@ public class AntlerSolver {
                     do {
                         last = graph.n();
                         AntlerReduction.reduce(graph);
+                        if(graph.n() != last) ReductionRoot.reduce(graph);
                     } while(graph.n() != last);
                 }
                 System.out.println("graph "+names[g]+" reduction: ("+originalsizeN+", "+originalsizeM+") -> (" +

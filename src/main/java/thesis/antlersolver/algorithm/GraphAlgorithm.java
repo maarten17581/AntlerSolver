@@ -1,5 +1,6 @@
 package thesis.antlersolver.algorithm;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +9,7 @@ import java.util.Random;
 
 import fvs_wata_orz.Graph;
 import fvs_wata_orz.tc.wata.data.IntArray;
+import thesis.antlersolver.model.Description;
 import thesis.antlersolver.model.FVC;
 import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
@@ -165,6 +167,10 @@ public class GraphAlgorithm {
     }
 
     public static PathAntler[] getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck) {
+        return getKPathAntlers(k, graph, onlyLengthCheck, Integer.MAX_VALUE);
+    }
+
+    public static PathAntler[] getKPathAntlers(int k, Graph graph, boolean onlyLengthCheck, int maxNumber) {
         if(k == 1) {
             PathAntler[] singlePathAntlers = getSingletonPathAntlers(graph);
             PathAntler[] nonEmptyPathAntlers = new PathAntler[singlePathAntlers.length];
@@ -177,10 +183,20 @@ public class GraphAlgorithm {
             if(paLength >= 1) {
                 return Arrays.copyOf(nonEmptyPathAntlers, paLength);
             } else {
+                if(singlePathAntlers.length > maxNumber) {
+                    Random rand = new Random();
+                    for(int i = 0; i < singlePathAntlers.length; i++) {
+                        int swapIndex = rand.nextInt(singlePathAntlers.length);
+                        PathAntler toSwap = singlePathAntlers[swapIndex];
+                        singlePathAntlers[swapIndex] = singlePathAntlers[i];
+                        singlePathAntlers[i] = toSwap;
+                    }
+                    singlePathAntlers = Arrays.copyOf(singlePathAntlers, maxNumber);
+                }
                 return singlePathAntlers;
             }
         }
-        PathAntler[] prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck);
+        PathAntler[] prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck, maxNumber);
         if(prevPathAntlers.length >= 1 && prevPathAntlers[0].getA().length >= 1) {
             return prevPathAntlers;
         }
@@ -367,6 +383,16 @@ public class GraphAlgorithm {
         if(paLength2 >= 1) {
             return Arrays.copyOf(nonEmptyPathAntlers, paLength2);
         } else {
+            if(nextPathAntlers.length > maxNumber) {
+                Random rand = new Random();
+                for(int i = 0; i < nextPathAntlers.length; i++) {
+                    int swapIndex = rand.nextInt(nextPathAntlers.length);
+                    PathAntler toSwap = nextPathAntlers[swapIndex];
+                    nextPathAntlers[swapIndex] = nextPathAntlers[i];
+                    nextPathAntlers[i] = toSwap;
+                }
+                nextPathAntlers = Arrays.copyOf(nextPathAntlers, maxNumber);
+            }
             return nextPathAntlers;
         }
     }
@@ -524,7 +550,6 @@ public class GraphAlgorithm {
 
     private static Pair<Integer, Integer> hasFlower_dfs(int r, int v, int[] F, boolean[] visited, Graph graph) {
         int i = Arrays.binarySearch(F, r);
-        if(i < 0) System.out.println(Arrays.toString(F)+ " " + i + " " + r + " " + v);
         visited[i] = true;
         int subtreeCycles = 0;
         int extraCycles = 0;
@@ -642,5 +667,524 @@ public class GraphAlgorithm {
 
     public static int[] smartDisjointFVS(int v, Graph graph) {
         return smartDisjointFVS(v, graph.n, graph);
+    }
+
+    public static Description[] getKSecludedTrees(int k, Graph graph) {
+        Description[] allD = new Description[0];
+        for(int i = 0; i < graph.n; i++) {
+            boolean[] T = new boolean[graph.n];
+            boolean[] F = new boolean[graph.n];
+            T[i] = true;
+            F[i] = true;
+            Graph g = new Graph(graph);
+            Description[] d = getKSecludedTrees(T, 1, F, 1, k, g);
+            allD = Arrays.copyOf(allD, allD.length + d.length);
+            System.arraycopy(d, 0, allD, allD.length - d.length, d.length);
+        }
+        for(Description d : allD) d.setSmallR(graph);
+        allD = new HashSet<>(Arrays.asList(allD)).toArray(new Description[0]);
+        return allD;
+    }
+
+    public static Description[] getKSecludedTrees(boolean[] T, int tsize, boolean[] F, int fsize, int k, Graph g) {
+        // Add neighbor from F that is in graph F to F
+        int[] queue = new int[2*g.n];
+        int queueSize = 0;
+        int index = 0;
+        for(int i = 0; i < g.n; i++) if(F[i]) queue[queueSize++] = i;
+        while(index < queueSize) {
+            int node = queue[index++];
+            for(int nb : g.adj[node]) {
+                if(g.used[nb] == 'F' && !F[nb]) {
+                    F[nb] = true;
+                    fsize++;
+                    queue[queueSize++] = nb;
+                }
+            }
+        }
+        
+        // Cycle in F
+        boolean[] visited = new boolean[g.n];
+        index = 0;
+        queueSize = 0;
+        for(int i = 0; i < g.n; i++) {
+            if(visited[i] || !F[i]) continue;
+            visited[i] = true;
+            queue[queueSize++] = i;
+            queue[queueSize++] = -1;
+            while(index < queueSize) {
+                int node = queue[index++];
+                int prev = queue[index++];
+                for(int nb : g.adj[node]) {
+                    if(!F[nb]) continue;
+                    if(nb == prev) {
+                        prev = -1;
+                        continue;
+                    }
+                    if(visited[nb] || nb == node) return new Description[0]; // Cycle in F
+                    visited[nb] = true;
+                    queue[queueSize++] = nb;
+                    queue[queueSize++] = node;
+                }
+            }
+        }
+
+        // Components containing F
+        int[] components = new int[g.n];
+        int cCount = 1;
+        queueSize = 0;
+        index = 0;
+        for(int i = 0; i < g.n; i++) {
+            if(components[i] > 0 || (g.adj[i].length == 0 && !F[i])) continue;
+            components[i] = cCount;
+            queue[queueSize++] = i;
+            while(index < queueSize) {
+                int node = queue[index++];
+                for(int nb : g.adj[node]) {
+                    if(components[nb] > 0) continue;
+                    components[nb] = cCount;
+                    queue[queueSize++] = nb;
+                }
+            }
+            cCount++;
+        }
+
+        int fComponent = 0;
+        for(int i = 0; i < g.n; i++) {
+            if(F[i] && fComponent > 0 && fComponent != components[i]) return new Description[0]; // F over multiple components
+            if(F[i] && fComponent == 0) fComponent = components[i];
+        }
+        for(int i = 0; i < g.n; i++) if(components[i] != fComponent) g.adj[i] = new int[0];
+
+        // leaf removal
+        queueSize = 0;
+        index = 0;
+        for(int i = 0; i < g.n; i++) if(g.adj[i].length == 1 && g.adj[i][0] != i) queue[queueSize++] = i;
+        while(index < queueSize) {
+            int node = queue[index++];
+            if(tsize == 1 && T[node]) continue;
+            if(T[node]) {
+                T[node] = false;
+                tsize--;
+            }
+            if(F[node]) {
+                F[node] = false;
+                fsize--;
+            }
+            if(g.adj[node].length == 0) continue;
+            int nb = g.adj[node][0];
+            g.removeV(node);
+            if(g.adj[nb].length == 1 && g.adj[nb][0] != nb) queue[queueSize++] = nb;
+        }
+
+        // Add neighbor F to T
+        index = 0;
+        queueSize = 0;
+        for(int i = 0; i < g.n; i++) if(T[i]) queue[queueSize++] = i;
+        while(index < queueSize) {
+            int node = queue[index++];
+            for(int nb : g.adj[node]) {
+                if(F[nb] && !T[nb]) {
+                    T[nb] = true;
+                    tsize++;
+                    queue[queueSize++] = nb;
+                }
+            }
+        }
+
+        // F no neighbors
+        boolean hasNb = false;
+        int nodeF = -1;
+        for(int i = 0; i < g.n && !hasNb; i++) if(F[i]) {
+            nodeF = i;
+            for(int j : g.adj[i]) {
+                if(!F[j]) {
+                    hasNb = true;
+                    break;
+                }
+            }
+        }
+        if(!hasNb) return new Description[]{new Description(nodeF, new int[0][0])};
+
+        // no k
+        if(k == 0) return new Description[0];
+
+        // Node with 2 neighbors in T
+        for(int i = 0; i < g.n; i++) {
+            if(T[i] || F[i]) continue;
+            int tCount = 0;
+            for(int j : g.adj[i]) {
+                if(T[j]) tCount++;
+            }
+            if(tCount >= 2) {
+                g.removeV(i);
+                Description[] desc = getKSecludedTrees(T, tsize, F, fsize, k-1, g); // Had a node with 2 neighbors in T
+                for(Description d : desc) d.addX(new int[]{i});
+                return desc;
+            }
+        }
+        
+        // Node within border nbh of T
+        int nbhT = 0;
+        int nbNodeT = -1;
+        for(int i = 0; i < g.n; i++) {
+            if(T[i]) continue;
+            for(int j : g.adj[i]) {
+                if(T[j]) {
+                    nbhT++;
+                    nbNodeT = i;
+                    break;
+                }
+            }
+        }
+        if(nbhT > k*(k+1)) {
+            Graph g1 = new Graph(g);
+
+            // Contract T
+            int[] nbhNodesT = new int[g1.n];
+            int nodeT = -1;
+            for(int i = 0; i < g1.n; i++) {
+                if(T[i]) {
+                    nodeT = i;
+                    continue;
+                }
+                for(int v : g1.adj[i]) {
+                    if(T[v]) {
+                        nbhNodesT[i]++;
+                        break;
+                    }
+                }
+            }
+            int nbhSizeT = 0;
+            for(int i = 0; i < g1.n; i++) nbhSizeT += Math.min(nbhNodesT[i], 2);
+            int[] newNbh = new int[nbhSizeT];
+            index = 0;
+            for(int i = 0; i < g1.n; i++) for(int j = 0; j < Math.min(nbhNodesT[i], 2); j++) newNbh[index++] = i;
+            g1.adj[nodeT] = newNbh;
+            for(int i = 0; i < g1.n; i++) if(T[i] && i != nodeT) g1.adj[i] = new int[0];
+
+            // Find node v
+            for(int i = 0; i < g1.n; i++) {
+                if(F[i] || g.used[i] == 'F') continue;
+                int[][] adj = new int[2*g1.n][];
+                int[][] flow = new int[2*g1.n][];
+                for(int j = 0; j < g1.n; j++) flow[j] = new int[g1.adj[j].length+1];
+                for(int j = 0; j < g1.n; j++) flow[j+g1.n] = new int[g1.adj[j].length+1];
+                for(int j = 0; j < g1.n; j++) {
+                    adj[j] = new int[g1.adj[j].length+1];
+                    System.arraycopy(g1.adj[j], 0, adj[j], 0, g1.adj[j].length);
+                    adj[j][g1.adj[j].length] = j+g1.n;
+                    for(int l = 0; l < g1.adj[j].length; l++) flow[j][l] = 1;
+                }
+                for(int j = 0; j < g1.n; j++) {
+                    adj[j+g1.n] = new int[g1.adj[j].length+1];
+                    System.arraycopy(g1.adj[j], 0, adj[j+g1.n], 0, g1.adj[j].length);
+                    adj[j+g1.n][g1.adj[j].length] = j;
+                    flow[j+g1.n][g1.adj[j].length] = 1;
+                }
+                boolean kPathFound = true;
+                for(int j = 0; j < k+2; j++) {
+                    if(!flow(adj, i+g1.n, nodeT, flow)) {
+                        kPathFound = false;
+                        break;
+                    }
+                }
+                if(kPathFound) {
+                    g.removeV(i);
+                    Description[] desc = getKSecludedTrees(T, tsize, F, fsize, k-1, g); // Had a node with k+2 neighbors in T
+                    for(Description d : desc) d.addX(new int[]{i});
+                    return desc;
+                }
+            }
+
+            return new Description[0]; // No node with k+2 paths to T
+        }
+
+        // Splitting on extending path from nbNodeT
+        int[] path = new int[g.n];
+        boolean[] inPath = new boolean[g.n];
+        path[0] = nbNodeT;
+        inPath[nbNodeT] = true;
+        int pathSize = 1;
+        while(g.adj[path[pathSize-1]].length == 2) {
+            int nb1 = g.adj[path[pathSize-1]][0];
+            int nb2 = g.adj[path[pathSize-1]][1];
+            int nb = T[nb1] || inPath[nb1] ? nb2 : nb1;
+            if(T[nb] || inPath[nb]) break;
+            path[pathSize++] = nb;
+            inPath[nb] = true;
+        }
+        boolean doubleEnd = false;
+        if(g.adj[path[pathSize-1]].length == 3) {
+            int x = g.adj[path[pathSize-1]][0];
+            int y = g.adj[path[pathSize-1]][1];
+            int z = g.adj[path[pathSize-1]][2];
+            if((x == y || y == z) && !T[y]) {
+                path[pathSize++] = y;
+                inPath[y] = true;
+                doubleEnd = true;
+            }
+        }
+        
+        // D1
+        Description[] d1 = new Description[0];
+        if(!F[path[pathSize-1]] && g.used[path[pathSize-1]] != 'F') {
+            Graph g1 = new Graph(g);
+            g1.removeV(path[pathSize-1]);
+            d1 = getKSecludedTrees(T.clone(), tsize, F.clone(), fsize, k-1, g1);
+            for(Description d : d1) d.addX(new int[]{path[pathSize-1]});
+        }
+
+        // D2
+        Description[] d2 = new Description[0];
+        boolean inF = true;
+        for(int i = 0; i < pathSize-1; i++) if(!F[path[i]]) inF = false;
+        if(!inF && (!doubleEnd || (!F[path[pathSize-2]] && g.used[path[pathSize-2]] != 'F'))) {
+            Graph g2 = new Graph(g);
+            for(int i = 0; i < pathSize-1; i++) g2.removeV(path[i]);
+            boolean[] reducedF = new boolean[g.n];
+            int reducedFsize = 0;
+            for(int i = 0; i < g.n; i++) {
+                if(!inPath[i]) {
+                    reducedF[i] = F[i];
+                    if(F[i]) reducedFsize++;
+                }
+            }
+            reducedF[path[pathSize-1]] = true;
+            reducedFsize++;
+            d2 = getKSecludedTrees(T.clone(), tsize, reducedF, reducedFsize, k-1, g2);
+            if(doubleEnd) {
+                for(Description d : d2) d.addX(new int[]{path[pathSize-2]});
+            } else {
+                for(Description d : d2) {
+                    int[] shorterPath = new int[pathSize];
+                    int length = 0;
+                    for(int i = 0; i < pathSize-1; i++) if(!F[path[i]] && g.used[path[i]] != 'F') shorterPath[length++] = path[i];
+                    shorterPath = Arrays.copyOf(shorterPath, length);
+                    Arrays.sort(shorterPath);
+                    d.addX(shorterPath);
+                }
+            }
+        }
+
+        // D3
+        Description[] d3 = new Description[0];
+        boolean acyclicPandF = true;
+        visited = new boolean[g.n];
+        queueSize = 0;
+        index = 0;
+        for(int i = 0; i < g.n && acyclicPandF; i++) {
+            if(visited[i] || (!F[i] && !inPath[i])) continue;
+            visited[i] = true;
+            queue[queueSize++] = i;
+            queue[queueSize++] = -1;
+            while(index < queueSize && acyclicPandF) {
+                int node = queue[index++];
+                int prev = queue[index++];
+                for(int nb : g.adj[node]) {
+                    if((!F[nb] && !inPath[nb])) continue;
+                    if(nb == prev) {
+                        prev = -1;
+                        continue;
+                    }
+                    if(visited[nb] || nb == node) {
+                        acyclicPandF = false;
+                        break;
+                    }
+                    visited[nb] = true;
+                    queue[queueSize++] = nb;
+                    queue[queueSize++] = node;
+                }
+            }
+        }
+        if(acyclicPandF) {
+            Graph g3 = new Graph(g);
+            boolean[] addedF = new boolean[g.n];
+            int addedFsize = 0;
+            boolean[] addedT = new boolean[g.n];
+            int addedTsize = 0;
+            for(int i = 0; i < g.n; i++) {
+                addedF[i] = F[i];
+                if(F[i]) addedFsize++;
+                addedT[i] = T[i];
+                if(T[i]) addedTsize++;
+            }
+            for(int i = 0; i < pathSize; i++) {
+                if(!addedF[path[i]]) addedFsize++;
+                addedF[path[i]] = true;
+                if(!addedT[path[i]]) addedTsize++;
+                addedT[path[i]] = true;
+            }
+            d3 = getKSecludedTrees(addedT, addedTsize, addedF, addedFsize, k, g3);
+        }
+        Description[] d = new Description[d1.length + d2.length + d3.length];
+        System.arraycopy(d1, 0, d, 0, d1.length);
+        System.arraycopy(d2, 0, d, d1.length, d2.length);   
+        System.arraycopy(d3, 0, d, d1.length+d2.length, d3.length);
+        return d;
+    }
+
+    private static boolean flow(int[][] adj, int s, int t, int[][] flow) {
+        int[] queue = new int[adj.length];
+        int[] parent = new int[adj.length];
+        boolean[] visited = new boolean[adj.length];
+        queue[0] = s;
+        visited[s] = true;
+        int index = 0;
+        int queueSize = 1;
+        boolean pathFound = false;
+        while(index < queueSize && !pathFound) {
+            int node = queue[index++];
+            for(int j = 0; j < adj[node].length; j++) {
+                if(visited[adj[node][j]]) continue;
+                if(flow[node][j] >= 1) continue;
+                visited[adj[node][j]] = true;
+                queue[queueSize++] = adj[node][j];
+                parent[adj[node][j]] = node;
+                if(adj[node][j] == t) {
+                    pathFound = true;
+                    break;
+                }
+            }
+            for(int j = 0; j < adj[node].length; j++) {
+                if(visited[adj[node][j]]) continue;
+                if(flow[node][j] >= 1) continue;
+                visited[adj[node][j]] = true;
+                queue[queueSize++] = adj[node][j];
+                parent[adj[node][j]] = node;
+                if(adj[node][j] == t) {
+                    pathFound = true;
+                    break;
+                }
+            }
+        }
+        if(!pathFound) return false;
+        int walk = t;
+        while(walk != s) {
+            int parentNode = parent[walk];
+            for(int i = 0; i < adj[parentNode].length; i++) if(adj[parentNode][i] == walk) {
+                flow[parentNode][i]++;
+                break;
+            }
+            for(int i = 0; i < adj[walk].length; i++) if(adj[walk][i] == parentNode) {
+                flow[walk][i]++;
+                break;
+            }
+            walk = parentNode;
+        }
+        return true;
+    }
+
+    public static FVC[] getSingleTreeAntlers(int k, Graph g) {
+        Description[] desc = getKSecludedTrees(k, g);
+        FVC[] fvcs = new FVC[desc.length*(2*k+1)];
+        int fvcLength = 0;
+        for(Description d : desc) {
+            boolean[] tree = new boolean[g.n];
+            int[] inX = new int[g.n];
+            int[] xMapi = new int[g.n];
+            int[] xMapj = new int[g.n];
+            for(int i = 0; i < d.X.length; i++) {
+                for(int j = 0; j < d.X[i].length; j++) {
+                    xMapi[d.X[i][j]] = i+1;
+                    xMapj[d.X[i][j]] = j+1;
+                    inX[d.X[i][j]] = d.X[i].length == 1 ? 1 : 2;
+                }
+            }
+            int[] queue = new int[6*g.n];
+            queue[0] = d.r;
+            queue[1] = 0;
+            queue[2] = 0;
+            tree[d.r] = true;
+            int queueSize = 3;
+            int index = 0;
+            while(index < queueSize) {
+                int node = queue[index++];
+                int i = queue[index++];
+                int j = queue[index++];
+                for(int nb : g.adj[node]) {
+                    if(tree[nb] || inX[nb] == 1) continue;
+                    if(i == 0 && j == 0) tree[nb] = true;
+                    xMapi[nb] = i;
+                    xMapj[nb] = j;
+                    int nexti = i;
+                    int nextj = j;
+                    if(inX[nb] > 0) {
+                        nexti = xMapi[nb];
+                        nextj = xMapi[nb];
+                    } else if((xMapi[nb] != 0 || xMapj[nb] != 0) && (xMapi[nb] != i || xMapj[nb] != j)) {
+                        nexti = 0;
+                        nextj = 0;
+                    }
+                    queue[queueSize++] = nb;
+                    queue[queueSize++] = nexti;
+                    queue[queueSize++] = nextj;
+                }
+            }
+            for(int i = 0; i < d.X.length; i++) {
+                if(d.X[i].length > 1) continue;
+                int v = d.X[i][0];
+                int[] nbpointer = new int[2*d.X.length+2];
+                int[] nbcounter = new int[2*d.X.length+2];
+                int edgesToT = 0;
+                for(int nb : g.adj[v]) {
+                    if(edgesToT >= 2) break;
+                    if(xMapi[nb] == 0 && xMapj[nb] == 0) edgesToT++;
+                    else if(nbpointer[2*xMapi[nb]] == xMapj[nb]) nbcounter[2*xMapi[nb]]++;
+                    else if(nbpointer[2*xMapi[nb]+1] == xMapj[nb]) nbcounter[2*xMapi[nb]+1]++;
+                    else if(nbpointer[2*xMapi[nb]] == 0) {
+                        nbpointer[2*xMapi[nb]] = xMapj[nb];
+                        nbcounter[2*xMapi[nb]] = 1;
+                    } else if(nbpointer[2*xMapi[nb]+1] == 0) {
+                        nbpointer[2*xMapi[nb]+1] = xMapj[nb];
+                        nbcounter[2*xMapi[nb]+1] = 1;
+                    } else {
+                        edgesToT = 2;
+                        break;
+                    }
+                }
+                for(int j = 0; j < d.X.length; j++) {
+                    edgesToT += Math.min(nbcounter[2*j+2], nbcounter[2*j+3]);
+                }
+                if(edgesToT < 2) {
+                    int[] nbh1 = new int[d.X.length-1];
+                    int[] nbh2 = new int[d.X.length-1];
+                    boolean no2Nbh = true;
+                    int length = 0;
+                    for(int j = 0; j < d.X.length; j++) {
+                        if(i == j) continue;
+                        if(d.X[j].length == 1 || (nbcounter[2*j+2] == 0 && nbcounter[2*j+3] == 0)) {
+                            nbh1[length] = d.X[j][0];
+                            nbh2[length++] = d.X[j][0];
+                        } else if(nbcounter[2*j+2] > 0 && nbcounter[2*j+3] == 0) {
+                            nbh1[length] = d.X[j][nbpointer[2*j+2]];
+                            nbh2[length++] = d.X[j][nbpointer[2*j+2]];
+                        } else if(nbcounter[2*j+2] > 0 && nbcounter[2*j+3] > 0) {
+                            no2Nbh = false;
+                            nbh1[length] = d.X[j][nbpointer[2*j+2]];
+                            nbh2[length++] = d.X[j][nbpointer[2*j+3]];
+                        }
+                    }
+                    Arrays.sort(nbh1);
+                    Arrays.sort(nbh2);
+                    FVC fvc1 = new FVC(g, nbh1);
+                    fvc1.computeMaxA();
+                    if(fvc1.getA().length > 0) fvcs[fvcLength++] = fvc1;
+                    if(!no2Nbh) {
+                        FVC fvc2 = new FVC(g, nbh2);
+                        fvc2.computeMaxA();
+                        if(fvc2.getA().length > 0) fvcs[fvcLength++] = fvc2;
+                    }
+                }
+            }
+            int[] nbh = new int[d.X.length];
+            for(int i = 0; i < d.X.length; i++) {
+                nbh[i] = d.X[i][0];
+            }
+            FVC fvc = new FVC(g, nbh);
+            fvc.computeMaxA();
+            if(fvc.getA().length > 0) fvcs[fvcLength++] = fvc;
+        }
+        return Arrays.copyOf(fvcs, fvcLength);
     }
 }

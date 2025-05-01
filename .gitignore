@@ -6,7 +6,9 @@
 
 # Log files
 *.log
-/output/
+/output_public/
+/output_private/
+/output_workload/
 
 # Temporary files
 *.tmp

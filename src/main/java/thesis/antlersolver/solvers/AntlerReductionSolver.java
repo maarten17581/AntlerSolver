@@ -20,9 +20,23 @@ public class AntlerReductionSolver extends Solver {
 		this.res = res;
 		if (outputUB) System.err.printf("ub = %d%n", add + ub);
 	}
+
+    @Override
+    public void solve(Graph g) {
+        solve_recurse(g);
+        // for(int i = 0; i < g.n; i++) {
+        //     Graph g2 = new Graph(g);
+        //     AntlerReductionSolver solver = new AntlerReductionSolver();
+        //     solver.ub = i;
+        //     solver.solve_recurse(g2);
+        //     if(solver.res != null) {
+        //         res = solver.res;
+        //         break;
+        //     }
+        // }
+    }
 	
-	@Override
-	public void solve(Graph g) {
+	public void solve_recurse(Graph g) {
         if(Thread.currentThread().isInterrupted()) return;
 		ReductionRoot.reduce(g);
 		if (ub <= LowerBound.lowerBound(g)) return;
@@ -58,7 +72,7 @@ public class AntlerReductionSolver extends Solver {
         int oldN = g.n();
         AntlerReduction.reduce(g);
         if(oldN != g.n()) {
-            solve(g);
+            solve_recurse(g);
             return;
         }
 		ReductionRoot.DEBUG = false;
@@ -70,22 +84,20 @@ public class AntlerReductionSolver extends Solver {
 		Graph g1 = new Graph(g), g2 = g;
 //		Debug.print("S", s);
 		g1.setS(s);
-		solve(g1);
+		solve_recurse(g1);
+        //if(res != null) return;
 //		Debug.print("F", s);
 		g2.setF(s);
-		solve(g2, s);
+		solve_recurse(g2, s);
 	}
 	
-	public void solve(Graph g, int s) {
+	public void solve_recurse(Graph g, int s) {
         if(Thread.currentThread().isInterrupted()) return;
 		Reduction.reduce(g, ub);
 		if (ub <= LowerBound.lowerBound(g)) return;
         int maxdegree = 0;
         for(int i = 0; i < g.n; i++) if(g.used[i] == 0) maxdegree = Math.max(maxdegree, g.adj[i].length);
-        if (ub*maxdegree <= g.adj[s].length-2) {
-            System.out.println("Pruned!!!!!");
-            return;
-        }
+        if (ub*maxdegree <= g.adj[s].length-2) return;
 		if (g.m() == 0) {
 			update2(g.getS());
 			return;
@@ -137,14 +149,14 @@ public class AntlerReductionSolver extends Solver {
 				}
 				for (int i = 1; i < qt; i++) g.contract(que[i], s);
 				for (int i = 0; i < g.n; i++) if (x[i] == 1 && g.used[i] == 0) g.setS(i);
-				solve(g, s);
+				solve_recurse(g, s);
 				return;
 			}
 		}
         int oldN = g.n();
         AntlerReduction.reduce(g);
         if(oldN != g.n()) {
-            solve(g, s);
+            solve_recurse(g, s);
             return;
         }
 		int v = -1;
@@ -155,10 +167,11 @@ public class AntlerReductionSolver extends Solver {
 		Graph g1 = new Graph(g), g2 = g;
 //		Debug.print("+S", v);
 		g1.setS(v);
-		solve(g1, s);
+		solve_recurse(g1, s);
+        //if(res != null) return;
 //		Debug.print("+F", v);
 		g2.contract(v, s);
-		solve(g2, s);
+		solve_recurse(g2, s);
 	}
 	
 	void count() {

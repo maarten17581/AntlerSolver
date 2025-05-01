@@ -3,6 +3,8 @@ package thesis.antlersolver.algorithm;
 import org.junit.jupiter.api.Test;
 
 import fvs_wata_orz.Graph;
+import thesis.antlersolver.model.Description;
+import thesis.antlersolver.model.FVC;
 import thesis.antlersolver.model.PathAntler;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,6 +65,7 @@ public class GraphAlgorithmTest {
         Graph graph = makeTestGraph2();
         assertEquals(6, GraphAlgorithm.getKPathAntlers(1, graph, false).length, "K Path Antler test 1 failed");
         assertEquals(3, GraphAlgorithm.getKPathAntlers(2, graph, false).length, "K Path Antler test 2 failed");
+        assertEquals(5, GraphAlgorithm.getKPathAntlers(1, graph, false, 5).length, "K Path Antler test 3 failed");
     }
 
     @Test
@@ -115,5 +118,19 @@ public class GraphAlgorithmTest {
         assertEquals(5, fvs[2], "Smart Disjoint FVS test 4 failed");
         assertEquals(null, GraphAlgorithm.smartDisjointFVS(4, 2, graph), "Smart Disjoint FVS test 5 failed");
         assertEquals(null, GraphAlgorithm.smartDisjointFVS(2, graph), "Smart Disjoint FVS test 6 failed");
+    }
+
+    @Test
+    public void testKSecludedTrees() {
+        Graph graph = makeTestGraph2();
+        Description[] descriptions = GraphAlgorithm.getKSecludedTrees(3, graph);
+        assertEquals(8, descriptions.length, "K Secluded Trees test 1 failed");
+    }
+
+    @Test
+    public void testSingleTreeAntlers() {
+        Graph graph = makeTestGraph2();
+        FVC[] fvcs = GraphAlgorithm.getSingleTreeAntlers(3, graph);
+        assertEquals(4, fvcs.length, "Single Tree Antler test 1 failed");
     }
 }
