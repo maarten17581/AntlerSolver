@@ -1,0 +1,8 @@
+2AntlerHeuristicFFromSol:                          1
+2AntlerHeuristicFFromSolSize:                      2
+3SingleTreeAntler:                                 1
+3SingleTreeAntlerSize:                             3
+4PathAntler:                                       1
+4PathAntlerSize:                                   1
+5PathAntler:                                       1
+5PathAntlerSize:                                   1

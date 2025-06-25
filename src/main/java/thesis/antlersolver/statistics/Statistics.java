@@ -10,7 +10,7 @@ public class Statistics {
 
     private static Statistics stat;
     public Map<String, Long> info;
-    private final int pad = 25;
+    private final int pad = 50;
 
     private Statistics() {
         info = new HashMap<>();

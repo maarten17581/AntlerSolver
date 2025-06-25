@@ -10,6 +10,7 @@ public class PathAntler {
     private int[] A;
     private int[] C;
     private int[] P;
+    public int aCount;
     public Graph graph;
     public int[] endpoints;
     public int[] nextnodes;
@@ -165,6 +166,7 @@ public class PathAntler {
         A = new int[0];
         C = new int[0];
         P = new int[0];
+        aCount = 0;
         endpoints = new int[]{-1, -1};
         nextnodes = new int[]{-1, -1};
         extended = new boolean[2];
@@ -176,6 +178,7 @@ public class PathAntler {
         this.A = A;
         this.C = C;
         this.P = P;
+        aCount = 0;
         endpoints = new int[]{-1, -1};
         nextnodes = new int[]{-1, -1};
         extended = new boolean[2];
@@ -283,12 +286,15 @@ public class PathAntler {
         System.arraycopy(P, 0, allNodes, C.length, P.length);
         Graph pathAntlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
         A = new int[0];
+        aCount = 0;
         int extra = (nextnodes[0] == -1 || nextnodes[1] == -1) && !isCyclic ? 0 : 1;
         for(int i = 0; i < C.length; i++) {
             if(GraphAlgorithm.hasFlower(P, C[i], graph) >= C.length+extra) {
                 addA(C[i]);
-            } else if(!onlyLengthCheck && GraphAlgorithm.smartDisjointFVS(i, C.length-1+extra, pathAntlerGraph) == null) {
-                addA(C[i]);
+            } else if(!onlyLengthCheck) {
+                int[] fvs = GraphAlgorithm.smartDisjointFVS(i, C.length-1+extra, pathAntlerGraph);
+                if(fvs == null) addA(C[i]);
+                else aCount += fvs.length;
             }
         }
     }
@@ -322,6 +328,6 @@ public class PathAntler {
 
     @Override
     public String toString() {
-        return "A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P);
+        return "A: "+Arrays.toString(A)+", C: "+Arrays.toString(C)+", P: "+Arrays.toString(P)+", endpoints: "+Arrays.toString(endpoints)+", nextnodes: "+Arrays.toString(nextnodes)+", isCyclic: "+isCyclic+", extended: "+Arrays.toString(extended);
     }
 }

@@ -1,5 +1,11 @@
 package thesis.antlersolver.solvers;
-import fvs_wata_orz.FPTBranchingSolver;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import fvs_wata_orz.Graph;
 import fvs_wata_orz.HalfIntegralRelax;
 import fvs_wata_orz.LowerBound;
@@ -9,7 +15,9 @@ import fvs_wata_orz.Solver;
 import fvs_wata_orz.tc.wata.data.*;
 import fvs_wata_orz.tc.wata.debug.*;
 import fvs_wata_orz.tc.wata.util.*;
+import thesis.antlersolver.algorithm.GraphAlgorithm;
 import thesis.antlersolver.reductions.AntlerReduction;
+import thesis.antlersolver.statistics.Statistics;
 
 public class AntlerReductionSolver extends Solver {
 	
@@ -23,17 +31,16 @@ public class AntlerReductionSolver extends Solver {
 
     @Override
     public void solve(Graph g) {
+        // ReductionRoot.reduce(g);
+        // int last = 0;
+        // do {
+        //     if(Thread.currentThread().isInterrupted()) return;
+        //     last = g.n();
+        //     AntlerReduction.reduce(g);
+        //     if(g.n() != last) ReductionRoot.reduce(g);
+        // } while(g.n() != last);
+        update2(GraphAlgorithm.heuristicFVS(g));
         solve_recurse(g);
-        // for(int i = 0; i < g.n; i++) {
-        //     Graph g2 = new Graph(g);
-        //     AntlerReductionSolver solver = new AntlerReductionSolver();
-        //     solver.ub = i;
-        //     solver.solve_recurse(g2);
-        //     if(solver.res != null) {
-        //         res = solver.res;
-        //         break;
-        //     }
-        // }
     }
 	
 	public void solve_recurse(Graph g) {
@@ -55,13 +62,13 @@ public class AntlerReductionSolver extends Solver {
 			for (int i = 0; i < g.n; i++) if (g.used[i] == 'S') tmp.add(i);
 			for (int i = 0; i < gs.length; i++) {
 				Graph h = gs[i];
-				FPTBranchingSolver solver = new FPTBranchingSolver();
+				AntlerReductionSolver solver = new AntlerReductionSolver();
 				solver.ub = ub - tmp.length;
 				if (outputUB && i == gs.length - 1) {
 					solver.outputUB = true;
 					solver.add = add + tmp.length;
 				}
-				solver.solve(h);
+				solver.solve_recurse(h);
 				if (solver.res == null) return;
 				for (int j : solver.res) tmp.add(h.id[j]);
 			}
@@ -69,18 +76,13 @@ public class AntlerReductionSolver extends Solver {
 			res = tmp.toArray();
 			return;
 		}
-        int oldN = g.n();
-        AntlerReduction.reduce(g);
-        if(oldN != g.n()) {
-            solve_recurse(g);
-            return;
-        }
 		ReductionRoot.DEBUG = false;
 		int s = -1;
 		for (int i = 0; i < g.n; i++) if (g.adj[i].length > 0) {
 			if (s < 0 || g.adj[s].length < g.adj[i].length) s = i;
 		}
 		count();
+        Statistics.getStat().count("branch");
 		Graph g1 = new Graph(g), g2 = g;
 //		Debug.print("S", s);
 		g1.setS(s);
@@ -103,7 +105,7 @@ public class AntlerReductionSolver extends Solver {
 			return;
 		}
 		if (g.adj[s].length == 0) {
-			solve(g);
+			solve_recurse(g);
 			return;
 		}
 		Graph[] gs = g.decompose(false);
@@ -112,7 +114,7 @@ public class AntlerReductionSolver extends Solver {
 			for (int i = 0; i < g.n; i++) if (g.used[i] == 'S') tmp.add(i);
 			for (int i = 0; i < gs.length; i++) {
 				Graph h = gs[i];
-				FPTBranchingSolver solver = new FPTBranchingSolver();
+				AntlerReductionSolver solver = new AntlerReductionSolver();
 				solver.ub = ub - tmp.length;
 				if (outputUB && i == gs.length - 1) {
 					solver.outputUB = true;
@@ -122,8 +124,8 @@ public class AntlerReductionSolver extends Solver {
 				for (int j = 0; j < h.n; j++) if (h.adj[j].length > 0 && h.used[j] == 'F') {
 					s2 = j;
 				}
-				if (s2 >= 0) solver.solve(h, s2);
-				else solver.solve(h);
+                if (s2 >= 0) solver.solve_recurse(h, s2);
+				else solver.solve_recurse(h);
 				if (solver.res == null) return;
 				for (int j : solver.res) tmp.add(h.id[j]);
 			}
@@ -153,17 +155,12 @@ public class AntlerReductionSolver extends Solver {
 				return;
 			}
 		}
-        int oldN = g.n();
-        AntlerReduction.reduce(g);
-        if(oldN != g.n()) {
-            solve_recurse(g, s);
-            return;
-        }
 		int v = -1;
 		for (int u : g.adj[s]) {
 			if (v < 0 || g.adj[v].length < g.adj[u].length) v = u;
 		}
 		count();
+        Statistics.getStat().count("branch");
 		Graph g1 = new Graph(g), g2 = g;
 //		Debug.print("+S", v);
 		g1.setS(v);

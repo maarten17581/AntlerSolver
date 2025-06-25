@@ -1,0 +1,8 @@
+1Antler:                                           3
+1AntlerSize:                                       3
+1PathAntler:                                       1
+1PathAntlerSize:                                   1
+2PathAntler:                                       2
+2PathAntlerSize:                                   4
+4PathAntler:                                       1
+4PathAntlerSize:                                   4

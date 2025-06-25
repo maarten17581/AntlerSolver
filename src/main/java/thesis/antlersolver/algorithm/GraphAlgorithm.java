@@ -1,9 +1,12 @@
 package thesis.antlersolver.algorithm;
 
-import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -15,6 +18,32 @@ import thesis.antlersolver.model.Pair;
 import thesis.antlersolver.model.PathAntler;
 
 public class GraphAlgorithm {
+
+    public static Graph connectGraphs(Graph[] graphs, int[] e1, int[] e2) {
+        int n = 0;
+        for(int i = 0; i < graphs.length; i++) n += graphs[i].n;
+        IntArray[] adjmake = new IntArray[n];
+        for(int i = 0; i < n; i++) adjmake[i] = new IntArray();
+        int index = 0;
+        int extra = 0;
+        for(int i = 0; i < graphs.length; i++) {
+            for(int j = 0; j < graphs[i].n; j++) {
+                for(int v : graphs[i].adj[j]) adjmake[index].add(v+extra);
+                index++;
+            }
+            extra += graphs[i].n;
+        }
+        for(int i = 0; i < e1.length; i++) {
+            adjmake[e1[i]].add(e2[i]);
+            adjmake[e2[i]].add(e1[i]);
+        }
+        int[][] adj = new int[n][];
+        for(int i = 0; i < n; i++) {
+            adj[i] = adjmake[i].toArray();
+            Arrays.sort(adj[i]);
+        }
+        return new Graph(adj);
+    }
 
     public static Graph randomGraph(int n, double p) {
         Random rand = new Random();
@@ -34,6 +63,497 @@ public class GraphAlgorithm {
             Arrays.sort(adj[i]);
         }
         return new Graph(adj);
+    }
+
+    public static Graph randomTree(int n) {
+        int[] nodecount = new int[n];
+        int[] lengths = new int[n];
+        int[] neighbor = new int[n-1];
+        Random rand = new Random();
+        for(int i = 0; i < n-1; i++) {
+            neighbor[i] = rand.nextInt(i+1);
+            nodecount[neighbor[i]]++;
+        }
+        int[][] adj = new int[n][];
+        for(int i = 0; i < n; i++) {
+            if(i == 0) adj[i] = new int[nodecount[i]];
+            else {
+                adj[i] = new int[nodecount[i]+1];
+                adj[i][lengths[i]++] = neighbor[i-1];
+                adj[neighbor[i-1]][lengths[neighbor[i-1]]++] = i;
+            }
+        }
+        return new Graph(adj);
+    }
+
+    public static Graph randomForest(int n, int c) {
+        int removed = 0;
+        Graph t = randomTree(n);
+        Random rand = new Random();
+        while(removed < c-1) {
+            int node = rand.nextInt(n);
+            if(t.adj[node].length == 0) continue;
+            int j1 = rand.nextInt(t.adj[node].length);
+            int nb = t.adj[node][j1];
+            int j2 = Arrays.binarySearch(t.adj[nb], node);
+            int[] a = new int[t.adj[node].length-1];
+            System.arraycopy(t.adj[node], 0, a, 0, j1);
+            System.arraycopy(t.adj[node], j1+1, a, j1, t.adj[node].length-j1-1);
+            t.adj[node] = a;
+            a = new int[t.adj[nb].length-1];
+            System.arraycopy(t.adj[nb], 0, a, 0, j2);
+            System.arraycopy(t.adj[nb], j2+1, a, j2, t.adj[nb].length-j2-1);
+            t.adj[nb] = a;
+            removed++;
+        }
+        return t;
+    }
+
+    public static Graph randomForest(int n, double p) {
+        int c = 1;
+        Random rand = new Random();
+        while(c < n-1 && rand.nextDouble() < p) c++;
+        return randomForest(n, c);
+    }
+
+    /**
+     * Creats a random graph with antler structures within it
+     * 
+     * @param f The size of the forests of the antler structures
+     * @param k The size of the heads of the antler structures
+     * @param n The size of the rest of the graph, outside of the antler structures
+     * @param m The number of antlers to add to the graph
+     * @param c The probability of splitting the tree within a forest, on average one gets 1/(1-c) trees in the forest
+     * @param fk The density of edges between f and k
+     * @param kk The density of edges between nodes in k
+     * @param r The density of edges between k and n, and between nodes in n
+     * @param t The probability of a tree in f connecting to a node in n
+     * @return A graph that creates m antlers and connects all the antlers with the rest graph
+     */
+    public static Graph randomAntlerGraph(int f, int k, int n, int m, double c, double fk, double kk, double r, double t) {
+        Graph[] forests = new Graph[m];
+        Graph[] heads = new Graph[m];
+        for(int i = 0; i < m; i++) {
+            forests[i] = randomForest(f, c);
+            heads[i] = randomGraph(k, kk);
+        }
+        Graph rest = randomGraph(n, r);
+        Graph[] antlers = new Graph[m];
+        Random rand = new Random();
+        for(int l = 0; l < m; l++) {
+            int edgeLength = 0;
+            int[] e1 = new int[f*k];
+            int[] e2 = new int[f*k];
+            for(int i = 0; i < f; i++) for(int j = f; j < f+k; j++) if(rand.nextDouble() < fk) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            e1 = Arrays.copyOf(e1, edgeLength);
+            e2 = Arrays.copyOf(e2, edgeLength);
+            antlers[l] = connectGraphs(new Graph[]{forests[l], heads[l]}, e1, e2);
+            System.out.print(("Done with m: "+l)+"\r");
+        }
+        return randomAntlerGraph(antlers, f, k, rest, r, t);
+    }
+
+    /**
+     * Creats a random graph with antler structures within it
+     * 
+     * @param f The size of the forests of the antler structures
+     * @param k The size of the heads of the antler structures
+     * @param n The size of the rest of the graph, outside of the antler structures
+     * @param m The number of antlers to add to the graph
+     * @param c The probability of splitting the tree within a forest, on average one gets 1/(1-c) trees in the forest
+     * @param a The minimum size of A in the maximal sub-antler (A,C,F)
+     * @param r The density of edges between k and n, and between nodes in n
+     * @param t The probability of a tree in f connecting to a node in n
+     * @return A graph that creates m antlers and connects all the antlers with the rest graph
+     */
+    public static Graph randomAntlerGraph(int f, int k, int n, int m, double c, int a, double r, double t) {
+        Graph[] forests = new Graph[m];
+        Graph[] heads = new Graph[m];
+        for(int i = 0; i < m; i++) {
+            forests[i] = randomForest(f, c);
+            heads[i] = new Graph(new int[k][0]);
+        }
+        Graph rest = randomGraph(n, r);
+        Graph[] antlers = new Graph[m];
+        int[] headPart = new int[k];
+        for(int i = 0; i < k; i++) headPart[i] = i+f;
+        for(int l = 0; l < m; l++) {
+            int edgeLength = 0;
+            List<Integer> order = new ArrayList<>();
+            for(int i = 0; i < f*k+k*(k-1)/2; i++) order.add(i);
+            Collections.shuffle(order);
+            int[] e1 = new int[f*k+k*(k-1)/2];
+            int[] e2 = new int[f*k+k*(k-1)/2];
+            for(int i = 0; i < f; i++) for(int j = f; j < f+k; j++) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            for(int i = f; i < f+k; i++) for(int j = i+1; j < f+k; j++) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            int[] e1new = new int[e1.length];
+            int[] e2new = new int[e2.length];
+            for(int i = 0; i < e1.length; i++) e1new[order.get(i)] = e1[i];
+            for(int i = 0; i < e2.length; i++) e2new[order.get(i)] = e2[i];
+            e1 = e1new;
+            e2 = e2new;
+            int x = 0;
+            int y = order.size();
+            Graph antler = null;
+            while(y-x > 1) {
+                int mid = (x+y)/2;
+                antler = connectGraphs(new Graph[]{forests[l], heads[l]}, Arrays.copyOf(e1, mid), Arrays.copyOf(e2, mid));
+                FVC fvc = new FVC(antler, headPart);
+                fvc.computeMaxA();
+                if(fvc.getA().length >= a) {
+                    y = mid;
+                } else {
+                    x = mid;
+                }
+            }
+            antlers[l] = connectGraphs(new Graph[]{forests[l], heads[l]}, Arrays.copyOf(e1, y), Arrays.copyOf(e2, y));
+            System.out.print(("Done with m: "+l)+"\r");
+        }
+        return randomAntlerGraph(antlers, f, k, rest, r, t);
+    }
+
+    /**
+     * Creats a random graph with antler structures within it
+     * 
+     * @param antlers A list of antler graphs
+     * @param f The size of the forests in the antler graphs
+     * @param k The size of the head in the antler grpahs
+     * @param rest A graph for the rest part of the graph
+     * @param r The density of edges between k and n, and between nodes in n
+     * @param t The probability of a tree in f connecting to a node in n
+     * @return A graph that connects all the antlers with the rest graph
+     */
+    public static Graph randomAntlerGraph(Graph[] antlers, int f, int k, Graph rest, double r, double t) {
+        System.out.print("Start combining\r");
+        int n = rest.n;
+        int m = antlers.length;
+        int edgeLength = 0;
+        int[] e1 = new int[k*n*m+k*k*m*m+f*m];
+        int[] e2 = new int[k*n*m+k*k*m*m+f*m];
+        Random rand = new Random();
+        for(int l = 0; l < m; l++) {
+            for(int i = f*(l+1)+k*l; i < (f+k)*(l+1); i++) for(int j = f*m+k*m; j < f*m+k*m+n; j++) if(rand.nextDouble() < r) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+        }
+        for(int l1 = 0; l1 < m; l1++) {
+            for(int l2 = l1+1; l2 < m; l2++) {
+                for(int i = f*(l1+1)+k*l1; i < (f+k)*(l1+1); i++) for(int j = f*(l2+1)+k*l2; j < (f+k)*(l2+1); j++) if(rand.nextDouble() < r) {
+                    e1[edgeLength] = i;
+                    e2[edgeLength++] = j;
+                }
+            }
+        }
+        int[] forestPart = new int[f];
+        for(int i = 0; i < f; i++) forestPart[i] = i;
+        for(int l = 0; l < m; l++) {
+            Graph forest = GraphAlgorithm.subGraph(forestPart, antlers[l]);
+            int comps = f-forest.m();
+            int cc = 0;
+            int[] compCounter = new int[comps];
+            int[] whichComp = new int[f];
+            int[] q = new int[f];
+            for(int i = 0; i < f; i++) {
+                if(whichComp[i] > 0) continue;
+                q[0] = i;
+                compCounter[cc]++;
+                whichComp[i] = cc+1;
+                int index = 0;
+                int length = 1;
+                while(index < length) {
+                    int next = q[index++];
+                    for(int nb : forest.adj[next]) {
+                        if(whichComp[nb] > 0) continue;
+                        whichComp[nb] = cc+1;
+                        compCounter[cc]++;
+                        q[length++] = nb;
+                    }
+                }
+                cc++;
+            }
+            for(int i = 0; i < comps; i++) {
+                if(rand.nextDouble() > t) continue;
+                int indexT = rand.nextInt(compCounter[i]);
+                int count = 0;
+                int treeNode = -1;
+                for(int j = 0; j < f; j++) {
+                    if(whichComp[j] == i+1) count++;
+                    if(count > indexT) {
+                        treeNode = (f+k)*l+j;
+                        break;
+                    }
+                }
+                int restNode = rand.nextInt(n)+f*m+k*m;
+                e1[edgeLength] = treeNode;
+                e2[edgeLength++] = restNode;
+            }
+        }
+        Graph[] toConnect = new Graph[m+1];
+        for(int i = 0; i < m; i++) toConnect[i] = antlers[i];
+        toConnect[m] = rest;
+        e1 = Arrays.copyOf(e1, edgeLength);
+        e2 = Arrays.copyOf(e2, edgeLength);
+        return connectGraphs(toConnect, e1, e2);
+    }
+
+    /**
+     * Creats a random graph with path-antler structures within it
+     * 
+     * @param p The size of the paths of the path-antler structures
+     * @param k The size of the heads of the path-antler structures
+     * @param n The size of the rest of the graph, outside of the path-antler structures
+     * @param m The number of path-antlers to add to the graph
+     * @param fk The density of edges between f and k
+     * @param kk The density of edges between nodes in k
+     * @param r The density of edges between k and n, and between nodes in n
+     * @param t The probability of a tree in f connecting to a node in n
+     * @return A graph that creates m path-antlers and connects all the path-antlers with the rest graph
+     */
+    public static Graph randomPathAntlerGraph(int p, int k, int n, int m, double pk, double kk, double r, double t) {
+        Graph[] paths = new Graph[m];
+        Graph[] heads = new Graph[m];
+        for(int i = 0; i < m; i++) {
+            int[][] pathAdj = new int[p][];
+            for(int j = 0; j < p; j++) {
+                if(j == 0) pathAdj[j] = new int[]{j+1};
+                else if(j == p-1) pathAdj[j] = new int[]{j-1};
+                else pathAdj[j] = new int[]{j-1, j+1};
+            }
+            paths[i] = new Graph(pathAdj);
+            heads[i] = randomGraph(k, kk);
+        }
+        Graph rest = randomGraph(n, r);
+        Graph[] pathAntlers = new Graph[m];
+        Random rand = new Random();
+        for(int l = 0; l < m; l++) {
+            int edgeLength = 0;
+            int[] e1 = new int[p*k];
+            int[] e2 = new int[p*k];
+            for(int i = 0; i < p; i++) for(int j = p; j < p+k; j++) if(rand.nextDouble() < pk) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            e1 = Arrays.copyOf(e1, edgeLength);
+            e2 = Arrays.copyOf(e2, edgeLength);
+            pathAntlers[l] = connectGraphs(new Graph[]{paths[l], heads[l]}, e1, e2);
+            System.out.print(("Done with m: "+l)+"\r");
+        }
+        return randomPathAntlerGraph(pathAntlers, p, k, rest, r, t);
+    }
+
+    /**
+     * Creats a random graph with antler structures within it
+     * 
+     * @param p The size of the forests of the antler structures
+     * @param k The size of the heads of the antler structures
+     * @param n The size of the rest of the graph, outside of the antler structures
+     * @param m The number of antlers to add to the graph
+     * @param c The probability of splitting the tree within a forest, on average one gets 1/(1-c) trees in the forest
+     * @param a The minimum size of A in the maximal sub-antler (A,C,F)
+     * @param r The density of edges between k and n, and between nodes in n
+     * @param t The probability of a tree in f connecting to a node in n
+     * @return A graph that creates m antlers and connects all the antlers with the rest graph
+     */
+    public static Graph randomPathAntlerGraph(int p, int k, int n, int m, int a, double r, double t) {
+        Graph[] paths = new Graph[m];
+        Graph[] heads = new Graph[m];
+        for(int i = 0; i < m; i++) {
+            int[][] pathAdj = new int[p][];
+            for(int j = 0; j < p; j++) {
+                if(j == 0) pathAdj[j] = new int[]{j+1};
+                else if(j == p-1) pathAdj[j] = new int[]{j-1};
+                else pathAdj[j] = new int[]{j-1, j+1};
+            }
+            paths[i] = new Graph(pathAdj);
+            heads[i] = new Graph(new int[k][0]);
+        }
+        Graph rest = randomGraph(n, r);
+        Graph[] pathAntlers = new Graph[m];
+        int[] pathPart = new int[p];
+        for(int i = 0; i < p; i++) pathPart[i] = i;
+        int[] headPart = new int[k];
+        for(int i = 0; i < k; i++) headPart[i] = i+p;
+        for(int l = 0; l < m; l++) {
+            int edgeLength = 0;
+            List<Integer> order = new ArrayList<>();
+            for(int i = 0; i < p*k+k*(k-1)/2; i++) order.add(i);
+            Collections.shuffle(order);
+            int[] e1 = new int[p*k+k*(k-1)/2];
+            int[] e2 = new int[p*k+k*(k-1)/2];
+            for(int i = 0; i < p; i++) for(int j = p; j < p+k; j++) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            for(int i = p; i < p+k; i++) for(int j = i+1; j < p+k; j++) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            int[] e1new = new int[e1.length];
+            int[] e2new = new int[e2.length];
+            for(int i = 0; i < e1.length; i++) e1new[order.get(i)] = e1[i];
+            for(int i = 0; i < e2.length; i++) e2new[order.get(i)] = e2[i];
+            e1 = e1new;
+            e2 = e2new;
+            int x = 0;
+            int y = order.size();
+            Graph pathAntler = null;
+            while(y-x > 1) {
+                int mid = (x+y)/2;
+                pathAntler = connectGraphs(new Graph[]{paths[l], heads[l]}, Arrays.copyOf(e1, mid), Arrays.copyOf(e2, mid));
+                PathAntler pa = new PathAntler(pathAntler, new int[0], headPart, pathPart);
+                pa.computeStatistics();
+                pa.computeMaxA();
+                if(pa.getA().length >= a) {
+                    y = mid;
+                } else {
+                    x = mid;
+                }
+            }
+            pathAntlers[l] = connectGraphs(new Graph[]{paths[l], heads[l]}, Arrays.copyOf(e1, y), Arrays.copyOf(e2, y));
+            System.out.print(("Done with m: "+l)+"\r");
+        }
+        return randomPathAntlerGraph(pathAntlers, p, k, rest, r, t);
+    }
+
+    /**
+     * Creats a random graph with path-antler structures within it
+     * 
+     * @param pathAntlers A list of path-antler graphs
+     * @param p The size of the paths in the path-antler graphs
+     * @param k The size of the head in the path-antler grpahs
+     * @param rest A graph for the rest part of the graph
+     * @param r The density of edges between k and n, and between nodes in n
+     * @param t The probability of a tree in f connecting to a node in n
+     * @return A graph that connects all the path-antlers with the rest graph
+     */
+    public static Graph randomPathAntlerGraph(Graph[] pathAntlers, int p, int k, Graph rest, double r, double t) {
+        System.out.print("Start combining\r");
+        int n = rest.n;
+        int m = pathAntlers.length;
+        int edgeLength = 0;
+        int[] e1 = new int[k*n*m+k*k*m*m+2*m];
+        int[] e2 = new int[k*n*m+k*k*m*m+2*m];
+        Random rand = new Random();
+        for(int l = 0; l < m; l++) {
+            for(int i = p*(l+1)+k*l; i < (p+k)*(l+1); i++) for(int j = p*m+k*m; j < p*m+k*m+n; j++) if(rand.nextDouble() < r) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+        }
+        for(int l1 = 0; l1 < m; l1++) {
+            for(int l2 = l1+1; l2 < m; l2++) {
+                for(int i = p*(l1+1)+k*l1; i < (p+k)*(l1+1); i++) for(int j = p*(l2+1)+k*l2; j < (p+k)*(l2+1); j++) if(rand.nextDouble() < r) {
+                    e1[edgeLength] = i;
+                    e2[edgeLength++] = j;
+                }
+            }
+        }
+        for(int l = 0; l < m; l++) {
+            if(rand.nextDouble() < t) {
+                int restNode = rand.nextInt(n)+p*m+k*m;
+                e1[edgeLength] = (p+k)*l;
+                e2[edgeLength++] = restNode;
+            }
+            if(rand.nextDouble() < t) {
+                int restNode = rand.nextInt(n)+p*m+k*m;
+                e1[edgeLength] = (p+k)*l+p-1;
+                e2[edgeLength++] = restNode;
+            }
+        }
+        Graph[] toConnect = new Graph[m+1];
+        for(int i = 0; i < m; i++) toConnect[i] = pathAntlers[i];
+        toConnect[m] = rest;
+        e1 = Arrays.copyOf(e1, edgeLength);
+        e2 = Arrays.copyOf(e2, edgeLength);
+        return connectGraphs(toConnect, e1, e2);
+    }
+
+    public static Graph randomSingleTreeAntlerGraph(int f, int k, int n, int m, double fk, double kk, double r, double t) {
+        Graph[] trees = new Graph[m];
+        Graph[] heads = new Graph[m];
+        for(int i = 0; i < m; i++) {
+            trees[i] = randomTree(f);
+            heads[i] = randomGraph(k, kk);
+        }
+        Graph rest = randomGraph(n, r);
+        Graph[] antlers = new Graph[m];
+        Random rand = new Random();
+        for(int l = 0; l < m; l++) {
+            int edgeLength = 0;
+            int[] e1 = new int[f*k];
+            int[] e2 = new int[f*k];
+            for(int i = 0; i < f; i++) for(int j = f; j < f+k; j++) if(rand.nextDouble() < fk) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            e1 = Arrays.copyOf(e1, edgeLength);
+            e2 = Arrays.copyOf(e2, edgeLength);
+            antlers[l] = connectGraphs(new Graph[]{trees[l], heads[l]}, e1, e2);
+            System.out.print(("Done with m: "+l)+"\r");
+        }
+        return randomAntlerGraph(antlers, f, k, rest, r, t);
+    }
+
+    public static Graph randomSingleTreeAntlerGraph(int f, int k, int n, int m, int a, double r, double t) {
+        Graph[] trees = new Graph[m];
+        Graph[] heads = new Graph[m];
+        for(int i = 0; i < m; i++) {
+            trees[i] = randomTree(f);
+            heads[i] = new Graph(new int[k][0]);
+        }
+        Graph rest = randomGraph(n, r);
+        Graph[] antlers = new Graph[m];
+        int[] headPart = new int[k];
+        for(int i = 0; i < k; i++) headPart[i] = i+f;
+        for(int l = 0; l < m; l++) {
+            int edgeLength = 0;
+            List<Integer> order = new ArrayList<>();
+            for(int i = 0; i < f*k+k*(k-1)/2; i++) order.add(i);
+            Collections.shuffle(order);
+            int[] e1 = new int[f*k+k*(k-1)/2];
+            int[] e2 = new int[f*k+k*(k-1)/2];
+            for(int i = 0; i < f; i++) for(int j = f; j < f+k; j++) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            for(int i = f; i < f+k; i++) for(int j = i+1; j < f+k; j++) {
+                e1[edgeLength] = i;
+                e2[edgeLength++] = j;
+            }
+            int[] e1new = new int[e1.length];
+            int[] e2new = new int[e2.length];
+            for(int i = 0; i < e1.length; i++) e1new[order.get(i)] = e1[i];
+            for(int i = 0; i < e2.length; i++) e2new[order.get(i)] = e2[i];
+            e1 = e1new;
+            e2 = e2new;
+            int x = 0;
+            int y = order.size();
+            Graph antler = null;
+            while(y-x > 1) {
+                int mid = (x+y)/2;
+                antler = connectGraphs(new Graph[]{trees[l], heads[l]}, Arrays.copyOf(e1, mid), Arrays.copyOf(e2, mid));
+                FVC fvc = new FVC(antler, headPart);
+                fvc.computeMaxA();
+                if(fvc.getA().length >= a) {
+                    y = mid;
+                } else {
+                    x = mid;
+                }
+            }
+            antlers[l] = connectGraphs(new Graph[]{trees[l], heads[l]}, Arrays.copyOf(e1, y), Arrays.copyOf(e2, y));
+            System.out.print(("Done with m: "+l)+"\r");
+        }
+        return randomAntlerGraph(antlers, f, k, rest, r, t);
     }
 
     private static boolean isAcyclic_dfs(int v, int p, boolean[] visited, Graph graph) {
@@ -58,17 +578,21 @@ public class GraphAlgorithm {
 
     public static Graph subGraph(int[] nodes, Graph graph) {
         int[] inNodes = new int[graph.n];
-        int maxdegree = 0;
+        int maxcount = 0;
         for(int i = 0; i < nodes.length; i++) inNodes[nodes[i]] = i+1;
-        for(int v : nodes) Math.max(maxdegree, graph.adj[v].length);
-        int[][] adj = new int[Math.max(nodes.length, maxdegree)][0];
+        int[][] adj = new int[nodes.length][0];
         for(int i = 0; i < nodes.length; i++) {
             int count = 0;
             for(int j : graph.adj[nodes[i]]) if(inNodes[j] >= 1) count++;
             adj[i] = new int[count];
+            maxcount = Math.max(maxcount, count);
             int index = 0;
             for(int j : graph.adj[nodes[i]]) if(inNodes[j] >= 1) adj[i][index++] = inNodes[j]-1;
             Arrays.sort(adj[i]);
+        }
+        if(maxcount > nodes.length) {
+            adj = Arrays.copyOf(adj, maxcount);
+            for(int i = nodes.length; i < maxcount; i++) adj[i] = new int[0];
         }
         return new Graph(adj);
     }
@@ -77,10 +601,10 @@ public class GraphAlgorithm {
         int[] handled = new int[graph.n];
         for(int i : C) handled[i] = 2;
         int[] queue = new int[graph.n+2*graph.m()];
+        int queueSize = 0;
         for(int i = 0; i < graph.n; i++) {
-            queue[i] = i;
+            if(graph.adj[i].length >= 0) queue[queueSize++] = i;
         }
-        int queueSize = graph.n;
         int index = 0;
         while(index < queueSize) {
             int node = queue[index];
@@ -103,6 +627,50 @@ public class GraphAlgorithm {
         index = 0;
         for(int i = 0; i < graph.n; i++) if(handled[i] == 1) F[index++] = i;
         return F;
+    }
+
+    public static int maxDiameterForest(int[] F, Graph graph) {
+        int maxDia = 0;
+        boolean[] inF = new boolean[graph.n];
+        int[] visited = new int[graph.n];
+        for(int v : F) inF[v] = true;
+        int[] queue = new int[2*graph.n];
+        for(int v : F) {
+            int queueSize = 0;
+            int index = 0;
+            if(visited[v] > 0) continue;
+            queue[queueSize++] = v;
+            queue[queueSize++] = 0;
+            visited[v] = 1;
+            while(index < queueSize) {
+                int u = queue[index++];
+                int dist = queue[index++];
+                for(int w : graph.adj[u]) {
+                    if(visited[w] > 0 || !inF[w]) continue;
+                    visited[w] = 1;
+                    queue[queueSize++] = w;
+                    queue[queueSize++] = dist+1;
+                }
+            }
+            int furthestV = queue[queueSize-2];
+            queueSize = 0;
+            index = 0;
+            queue[queueSize++] = furthestV;
+            queue[queueSize++] = 0;
+            visited[furthestV] = 2;
+            while(index < queueSize) {
+                int u = queue[index++];
+                int dist = queue[index++];
+                for(int w : graph.adj[u]) {
+                    if(visited[w] > 1 || !inF[w]) continue;
+                    visited[w] = 2;
+                    queue[queueSize++] = w;
+                    queue[queueSize++] = dist+1;
+                }
+            }
+            maxDia = Math.max(maxDia, queue[queueSize-1]);
+        }
+        return maxDia;
     }
 
     public static PathAntler[] getSingletonPathAntlers(Graph graph) {
@@ -184,19 +752,20 @@ public class GraphAlgorithm {
                 return Arrays.copyOf(nonEmptyPathAntlers, paLength);
             } else {
                 if(singlePathAntlers.length > maxNumber) {
-                    Random rand = new Random();
-                    for(int i = 0; i < singlePathAntlers.length; i++) {
-                        int swapIndex = rand.nextInt(singlePathAntlers.length);
-                        PathAntler toSwap = singlePathAntlers[swapIndex];
-                        singlePathAntlers[swapIndex] = singlePathAntlers[i];
-                        singlePathAntlers[i] = toSwap;
-                    }
+                    Arrays.sort(singlePathAntlers, new Comparator<PathAntler>() {
+                        @Override
+                        public int compare(PathAntler p1, PathAntler p2) {
+                            if(p1.aCount == p2.aCount) return p2.getP().length-p1.getP().length;
+                            return p2.aCount-p1.aCount;
+                        }
+                    });
                     singlePathAntlers = Arrays.copyOf(singlePathAntlers, maxNumber);
                 }
                 return singlePathAntlers;
             }
         }
         PathAntler[] prevPathAntlers = getKPathAntlers(k-1, graph, onlyLengthCheck, maxNumber);
+        if(Thread.currentThread().isInterrupted()) return new PathAntler[0];
         if(prevPathAntlers.length >= 1 && prevPathAntlers[0].getA().length >= 1) {
             return prevPathAntlers;
         }
@@ -240,8 +809,8 @@ public class GraphAlgorithm {
                 }
                 nbhNodes = Arrays.copyOf(nbhNodes, nbh);
                 if(nbInF != -1 && nbh + pathAntler.getC().length == k) {
-                    pathAntler.extended[i] = true;
                     PathAntler newPathAntler = new PathAntler(pathAntler);
+                    pathAntler.extended[i] = true;
                     newPathAntler.addC(nbhNodes);
                     if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[0]) >= 0)
                         newPathAntler.nextnodes[0] = -1;
@@ -253,11 +822,12 @@ public class GraphAlgorithm {
                     nextPathAntlers[paLength++] = newPathAntler;
                     continue;
                 } else if(nbInF == -1 && nbh + pathAntler.getC().length == k+1) {
+                    boolean hasExtended = false;
                     for(int j = 0; j < nbhNodes.length; j++) {
                         int v = nbhNodes[j];
                         if(graph.hasEdge(v, nextNode) >= 2) continue;
-                        pathAntler.extended[i] = true;
                         PathAntler newPathAntler = new PathAntler(pathAntler);
+                        hasExtended = true;
                         int[] toAdd = new int[nbhNodes.length-1];
                         System.arraycopy(nbhNodes, 0, toAdd, 0, j);
                         System.arraycopy(nbhNodes, j+1, toAdd, j, nbhNodes.length-j-1);
@@ -271,9 +841,10 @@ public class GraphAlgorithm {
                             nextPathAntlers = Arrays.copyOf(nextPathAntlers, (int)Math.round(1.5*paLength));
                         nextPathAntlers[paLength++] = newPathAntler;
                     }
+                    if(hasExtended) pathAntler.extended[i] = true;
                 } else if(nbInF == -1 && nbh + pathAntler.getC().length == k) {
-                    pathAntler.extended[i] = true;
                     PathAntler newPathAntler = new PathAntler(pathAntler);
+                    pathAntler.extended[i] = true;
                     newPathAntler.addC(nbhNodes);
                     if(Arrays.binarySearch(newPathAntler.getC(), pathAntler.nextnodes[0]) >= 0)
                         newPathAntler.nextnodes[0] = -1;
@@ -371,29 +942,53 @@ public class GraphAlgorithm {
             }
         }
         nextPathAntlers = Arrays.copyOf(nextPathAntlers, paLength);
-        nextPathAntlers = new HashSet<>(Arrays.asList(nextPathAntlers)).toArray(new PathAntler[0]);
-        PathAntler[] nonEmptyPathAntlers = new PathAntler[nextPathAntlers.length];
+        PathAntler[] uniquePathAntlers = new PathAntler[paLength];
         int paLength2 = 0;
-        for(PathAntler pathAntler : nextPathAntlers) {
-            pathAntler.computeMaxA(onlyLengthCheck);
-            if(pathAntler.getA().length >= 1) {
-                nonEmptyPathAntlers[paLength2++] = pathAntler;
+        Arrays.sort(nextPathAntlers, new Comparator<PathAntler>() {
+            @Override
+            public int compare(PathAntler p1, PathAntler p2) {
+                if(p1.getC().length != p2.getC().length) return p1.getC().length-p2.getC().length;
+                if(p1.getP().length != p2.getP().length) return p1.getP().length-p2.getP().length;
+                for(int i = 0; i < p1.getC().length; i++) {
+                    if(p1.getC()[i] != p2.getC()[i]) return p1.getC()[i]-p2.getC()[i];
+                }
+                for(int i = 0; i < p1.getP().length; i++) {
+                    if(p1.getP()[i] != p2.getP()[i]) return p1.getP()[i]-p2.getP()[i];
+                }
+                return 0;
+            }
+        });
+        for(int i = 0; i < nextPathAntlers.length; i++) {
+            if(i == 0 || !nextPathAntlers[i].equals(nextPathAntlers[i-1])) {
+                uniquePathAntlers[paLength2++] = nextPathAntlers[i];
+            } else if(i > 0) {
+                uniquePathAntlers[paLength2-1].extended[0] = uniquePathAntlers[paLength2-1].extended[0] && nextPathAntlers[i].extended[0];
+                uniquePathAntlers[paLength2-1].extended[1] = uniquePathAntlers[paLength2-1].extended[1] && nextPathAntlers[i].extended[1];
             }
         }
-        if(paLength2 >= 1) {
-            return Arrays.copyOf(nonEmptyPathAntlers, paLength2);
-        } else {
-            if(nextPathAntlers.length > maxNumber) {
-                Random rand = new Random();
-                for(int i = 0; i < nextPathAntlers.length; i++) {
-                    int swapIndex = rand.nextInt(nextPathAntlers.length);
-                    PathAntler toSwap = nextPathAntlers[swapIndex];
-                    nextPathAntlers[swapIndex] = nextPathAntlers[i];
-                    nextPathAntlers[i] = toSwap;
-                }
-                nextPathAntlers = Arrays.copyOf(nextPathAntlers, maxNumber);
+        uniquePathAntlers = Arrays.copyOf(uniquePathAntlers, paLength2);
+        PathAntler[] nonEmptyPathAntlers = new PathAntler[nextPathAntlers.length];
+        int paLength3 = 0;
+        for(PathAntler pathAntler : uniquePathAntlers) {
+            pathAntler.computeMaxA(onlyLengthCheck);
+            if(pathAntler.getA().length >= 1) {
+                nonEmptyPathAntlers[paLength3++] = pathAntler;
             }
-            return nextPathAntlers;
+        }
+        if(paLength3 >= 1) {
+            return Arrays.copyOf(nonEmptyPathAntlers, paLength3);
+        } else {
+            if(uniquePathAntlers.length > maxNumber) {
+                Arrays.sort(uniquePathAntlers, new Comparator<PathAntler>() {
+                    @Override
+                    public int compare(PathAntler p1, PathAntler p2) {
+                        if(p1.aCount == p2.aCount) return p2.getP().length-p1.getP().length;
+                        return p2.aCount-p1.aCount;
+                    }
+                });
+                uniquePathAntlers = Arrays.copyOf(uniquePathAntlers, maxNumber);
+            }
+            return uniquePathAntlers;
         }
     }
 
@@ -411,6 +1006,7 @@ public class GraphAlgorithm {
     // }
 
     private static int[][] extendC(int i, int[] c, int j, int k, Graph graph) {
+        if(Thread.currentThread().isInterrupted()) return new int[0][0];
         if(j == k) {
             return new int[][]{c.clone()};
         }
@@ -441,6 +1037,7 @@ public class GraphAlgorithm {
         int[][] Cs = new int[(k+2)*graph.n][];
         int length = 0;
         for(int v = 0; v < graph.n; v++) {
+            if(Thread.currentThread().isInterrupted()) return new FVC[0];
             if(graph.adj[v].length >= 3 && graph.adj[v].length <= 2*k+1) {
                 int[] nbh = new int[graph.adj[v].length];
                 int nbhSize = graph.N(v, nbh);
@@ -510,6 +1107,7 @@ public class GraphAlgorithm {
         int[][] ExtendedCs = new int[0][0];
         length = 0;
         for(int[] c : Cs) {
+            if(Thread.currentThread().isInterrupted()) return new FVC[0];
             int[][] extension = extendC(0, Arrays.copyOf(c, k), c.length, k, graph);
             if(length+extension.length >= ExtendedCs.length)
                 ExtendedCs = Arrays.copyOf(ExtendedCs, (int)Math.round(1.5*(length+extension.length)));
@@ -526,6 +1124,7 @@ public class GraphAlgorithm {
         int[][] tempExtendedCs = new int[ExtendedCs.length][0];
         length = 0;
         for(int i = 0; i < ExtendedCs.length; i++) {
+            if(Thread.currentThread().isInterrupted()) return new FVC[0];
             tempExtendedCs[length++] = ExtendedCs[i];
             while(true) {
                 if(i+1 >= ExtendedCs.length) break;
@@ -536,7 +1135,8 @@ public class GraphAlgorithm {
         ExtendedCs = Arrays.copyOf(tempExtendedCs, length);
         FVC[] nonEmptyFVC = new FVC[10];
         length = 0;
-        for(int[] c : ExtendedCs) {          
+        for(int[] c : ExtendedCs) {
+            if(Thread.currentThread().isInterrupted()) return new FVC[0];
             FVC fvc = new FVC(graph, c);
             fvc.computeMaxA(onlyFlower);
             if(fvc.getA().length >= 1) {
@@ -546,6 +1146,114 @@ public class GraphAlgorithm {
             }
         }
         return Arrays.copyOf(nonEmptyFVC, length);
+    }
+
+    interface ScoringFunction {
+        int getScore(FVC fvc);
+    }
+
+    public static FVC getKAntlerHeuristicF(int k, Graph graph, boolean onlyFlower, boolean fromHeuristicSolve) {
+        return getKAntlerHeuristic(k, graph, onlyFlower, fromHeuristicSolve, graph.n()-k, (FVC fvc) -> {
+            return fvc.getF().length;
+        });
+    }
+
+    public static FVC getKAntlerHeuristicFlower(int k, Graph graph, boolean onlyFlower, boolean fromHeuristicSolve) {
+        return getKAntlerHeuristic(k, graph, onlyFlower, fromHeuristicSolve, k*k, (FVC fvc) -> {
+            int score = 0;
+            for(int v : fvc.getC()) {
+                int flower = GraphAlgorithm.hasFlower(fvc.getF(), v, fvc.graph);
+                if(flower >= fvc.getC().length) flower *= fvc.getC().length;
+                score += flower;
+            }
+            return score;
+        });
+    }
+
+    public static FVC getKAntlerHeuristicEdge(int k, Graph graph, boolean onlyFlower, boolean fromHeuristicSolve) {
+        return getKAntlerHeuristic(k, graph, onlyFlower, fromHeuristicSolve, Integer.MAX_VALUE, (FVC fvc) -> {
+            int score = 0;
+            for(int v : fvc.getF()) for(int w : fvc.graph.adj[v]) if(fvc.inC(w) || fvc.inF(w)) score++;
+            for(int v : fvc.getC()) for(int w : fvc.graph.adj[v]) if(fvc.inC(w) || fvc.inF(w)) score++;
+            return score / 2;
+        });
+    }
+
+    public static FVC getKAntlerHeuristicDiameter(int k, Graph graph, boolean onlyFlower, boolean fromHeuristicSolve) {
+        return getKAntlerHeuristic(k, graph, onlyFlower, fromHeuristicSolve, k*(2*k+1)+1, (FVC fvc) -> {
+            return GraphAlgorithm.maxDiameterForest(fvc.getF(), fvc.graph);
+        });
+    }
+
+    public static FVC getKAntlerHeuristic(int k, Graph graph, boolean onlyFlower, boolean fromHeuristicSolve, int earlyReturnScore, ScoringFunction score) {
+        int[] nodes = new int[graph.n()];
+        int index = 0;
+        for(int i = 0; i < graph.n; i++) if(graph.adj[i].length > 0) nodes[index++] = i;
+        if(fromHeuristicSolve) nodes = heuristicFVS(graph);
+        if(k >= nodes.length) return new FVC(graph);
+        int[] swapnodes = new int[nodes.length-k];
+        int[] c = new int[k];
+        index = 0;
+        Random rand = new Random();
+        for(int i = 0; i < k; i++) {
+            int toAdd = nodes[rand.nextInt(nodes.length)];
+            boolean unique = true;
+            for(int j = 0; j < index; j++) if(c[j] == toAdd) unique = false;
+            if(unique) c[index++] = toAdd;
+            else i--;
+        }
+        index = 0;
+        for(int i = 0; i < nodes.length; i++) {
+            boolean notInC = true;
+            for(int j = 0; j < k; j++) if(c[j] == nodes[i]) notInC = false;
+            if(notInC) swapnodes[index++] = nodes[i];
+        }
+        FVC fvc = new FVC(graph, c);
+        double scorechange = 0;
+        for(int i = 0; i < 100; i++) {
+            int prevscore = score.getScore(fvc);
+            int a = fvc.getC()[rand.nextInt(k)];
+            int j = rand.nextInt(swapnodes.length);
+            int b = swapnodes[j];
+            fvc.removeC(a);
+            fvc.addC(b);
+            fvc.setMaxF();
+            swapnodes[j] = a;
+            int nextscore = score.getScore(fvc);
+            scorechange += Math.abs(prevscore-nextscore);
+        }
+        scorechange /= 100;
+        double temp = -scorechange/Math.log(0.5);
+        double endTemp = (-1/(-9*Math.log(10)));
+        double reduce = 0.999;
+        int prevscore = score.getScore(fvc);
+        FVC best = new FVC(graph, fvc.getC());
+        int bestscore = prevscore;
+        while(temp >= endTemp) {
+            int a = fvc.getC()[rand.nextInt(k)];
+            int j = rand.nextInt(swapnodes.length);
+            int b = swapnodes[j];
+            fvc.removeC(a);
+            fvc.addC(b);
+            fvc.setMaxF();
+            int nextscore = score.getScore(fvc);
+            if(rand.nextDouble() <= Math.exp((nextscore-prevscore)/temp)) {
+                swapnodes[j] = a;
+                prevscore = nextscore;
+                if(bestscore < nextscore) {
+                    best = new FVC(graph, fvc.getC());
+                    bestscore = nextscore;
+                }
+            } else {
+                fvc.removeC(b);
+                fvc.addC(a);
+                fvc.setMaxF();
+            }
+            temp *= reduce;
+            if(bestscore >= earlyReturnScore) break;
+        }
+        best.computeMaxA(onlyFlower);
+        return best;
     }
 
     private static Pair<Integer, Integer> hasFlower_dfs(int r, int v, int[] F, boolean[] visited, Graph graph) {
@@ -669,6 +1377,68 @@ public class GraphAlgorithm {
         return smartDisjointFVS(v, graph.n, graph);
     }
 
+    public static int[] heuristicFVS(Graph graph) {
+        Graph testGraph = new Graph(graph);
+        while(testGraph.n() > 0) {
+            simpleGraphReduction_Heuristic(testGraph);
+            if(testGraph.n() == 0) break;
+            int s = -1;
+            int degree = 0;
+            for(int i = 0; i < graph.n; i++) if(degree < testGraph.adj[i].length) {
+                s = i;
+                degree = testGraph.adj[i].length;
+            }
+            testGraph.setS(s);
+        }
+        return testGraph.getS();
+    }
+
+    private static void simpleGraphReduction_Heuristic(Graph g) {
+        while(true) {
+            int oldN = g.n();
+            int[] queue = new int[g.n+2*g.m()];
+            for(int i = 0; i < g.n; i++) queue[i] = i;
+            int index = 0;
+            int length = g.n;
+            int[] N2 = new int[g.n];
+            while(index < length) {
+                int v = queue[index++];
+                if(g.used[v] != 0) continue;
+                if(g.adj[v].length == 0) continue;
+                if(g.hasEdge(v, v) > 0) {
+                    for(int w : g.adj[v]) queue[length++] = w;
+                    g.setS(v);
+                    continue;
+                }
+                int p = g.N2(v, N2);
+                boolean n2reduction = false;
+                for(int i = 0; i < p; i++) if (g.used[N2[i]] == 'F') {
+                    n2reduction = true;
+                    for(int w : g.adj[v]) queue[length++] = w;
+                    g.setS(v);
+                    break;
+                }
+                if(n2reduction) continue;
+                if(g.adj[v].length <= 2) {
+                    for(int w : g.adj[v]) queue[length++] = w;
+                    g.eliminate(v);
+                    continue;
+                }
+                if(g.adj[v].length == 3) {
+                    int x = g.adj[v][0];
+                    int y = g.adj[v][1];
+                    int z = g.adj[v][2];
+                    if(x == y || y == z) {
+                        for(int w : g.adj[v]) queue[length++] = w;
+                        g.setS(y);
+                    }
+                }
+            }
+            int newN = g.n();
+            if(oldN == newN) break;
+        }
+    }
+
     public static Description[] getKSecludedTrees(int k, Graph graph) {
         Description[] allD = new Description[0];
         for(int i = 0; i < graph.n; i++) {
@@ -687,6 +1457,7 @@ public class GraphAlgorithm {
     }
 
     public static Description[] getKSecludedTrees(boolean[] T, int tsize, boolean[] F, int fsize, int k, Graph g) {
+        if(Thread.currentThread().isInterrupted()) return new Description[0];
         // Add neighbor from F that is in graph F to F
         int[] queue = new int[2*g.n];
         int queueSize = 0;
@@ -819,6 +1590,7 @@ public class GraphAlgorithm {
             if(tCount >= 2) {
                 g.removeV(i);
                 Description[] desc = getKSecludedTrees(T, tsize, F, fsize, k-1, g); // Had a node with 2 neighbors in T
+                if(Thread.currentThread().isInterrupted()) return new Description[0];
                 for(Description d : desc) d.addX(new int[]{i});
                 return desc;
             }
@@ -892,6 +1664,7 @@ public class GraphAlgorithm {
                 if(kPathFound) {
                     g.removeV(i);
                     Description[] desc = getKSecludedTrees(T, tsize, F, fsize, k-1, g); // Had a node with k+2 neighbors in T
+                    if(Thread.currentThread().isInterrupted()) return new Description[0];
                     for(Description d : desc) d.addX(new int[]{i});
                     return desc;
                 }
@@ -932,6 +1705,7 @@ public class GraphAlgorithm {
             Graph g1 = new Graph(g);
             g1.removeV(path[pathSize-1]);
             d1 = getKSecludedTrees(T.clone(), tsize, F.clone(), fsize, k-1, g1);
+            if(Thread.currentThread().isInterrupted()) return new Description[0];
             for(Description d : d1) d.addX(new int[]{path[pathSize-1]});
         }
 
@@ -953,6 +1727,7 @@ public class GraphAlgorithm {
             reducedF[path[pathSize-1]] = true;
             reducedFsize++;
             d2 = getKSecludedTrees(T.clone(), tsize, reducedF, reducedFsize, k-1, g2);
+            if(Thread.currentThread().isInterrupted()) return new Description[0];
             if(doubleEnd) {
                 for(Description d : d2) d.addX(new int[]{path[pathSize-2]});
             } else {
@@ -1016,6 +1791,7 @@ public class GraphAlgorithm {
                 addedT[path[i]] = true;
             }
             d3 = getKSecludedTrees(addedT, addedTsize, addedF, addedFsize, k, g3);
+            if(Thread.currentThread().isInterrupted()) return new Description[0];
         }
         Description[] d = new Description[d1.length + d2.length + d3.length];
         System.arraycopy(d1, 0, d, 0, d1.length);
@@ -1077,6 +1853,7 @@ public class GraphAlgorithm {
 
     public static FVC[] getSingleTreeAntlers(int k, Graph g) {
         Description[] desc = getKSecludedTrees(k, g);
+        if(Thread.currentThread().isInterrupted()) return new FVC[0];
         FVC[] fvcs = new FVC[desc.length*(2*k+1)];
         int fvcLength = 0;
         for(Description d : desc) {

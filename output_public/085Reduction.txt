@@ -1,0 +1,9 @@
+1Antler:                                           20
+1AntlerSize:                                       20
+2AntlerHeuristicF:                                 2
+2AntlerHeuristicFSize:                             4
+2PathAntler:                                       3
+2PathAntlerSize:                                   5
+3SingleTreeAntler:                                 1
+3SingleTreeAntlerSize:                             3
+branch:                                            1

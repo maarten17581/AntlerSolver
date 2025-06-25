@@ -10,6 +10,7 @@ public class FVC {
     private int[] A;
     private int[] C;
     private int[] F;
+    public int aCount;
     public Graph graph;
 
     public int[] getA() {
@@ -33,7 +34,9 @@ public class FVC {
         } else if(set == 'F') {
             S = F;
         }
-        int i = Utils.upperBound(S, v);
+        int i = Arrays.binarySearch(S, v);
+        if(i >= 0) return;
+        i = -i-1;
 		int[] a = new int[S.length + 1];
 		System.arraycopy(S, 0, a, 0, i);
 		a[i] = v;
@@ -94,13 +97,25 @@ public class FVC {
         remove(v, 'F');
     }
 
+    public boolean inA(int v) {
+        return setContained(v, 'A');
+    }
+
+    public boolean inC(int v) {
+        return setContained(v, 'C');
+    }
+
+    public boolean inF(int v) {
+        return setContained(v, 'F');
+    }
+
     private boolean setContained(int v, char set) {
         int[] S = new int[0];
         if(set == 'A') {
             S = A;
         } else if(set == 'C') {
             S = C;
-        } else if(set == 'P') {
+        } else if(set == 'F') {
             S = F;
         }
         return Arrays.binarySearch(S, v) >= 0;
@@ -111,6 +126,7 @@ public class FVC {
         A = new int[0];
         C = new int[0];
         F = new int[0];
+        aCount = 0;
     }
 
     public FVC(Graph graph, int[] C) {
@@ -122,6 +138,7 @@ public class FVC {
     }
 
     public void setMaxF() {
+        F = new int[0];
         for(int v : GraphAlgorithm.getF(C, graph)) {
             addF(v);
         }
@@ -135,13 +152,16 @@ public class FVC {
         int[] allNodes = new int[C.length+F.length];
         System.arraycopy(C, 0, allNodes, 0, C.length);
         System.arraycopy(F, 0, allNodes, C.length, F.length);
-        Graph pathAntlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
+        Graph antlerGraph = GraphAlgorithm.subGraph(allNodes, graph);
         A = new int[0];
+        aCount = 0;
         for(int i = 0; i < C.length; i++) {
             if(GraphAlgorithm.hasFlower(F, C[i], graph) >= C.length) {
                 addA(C[i]);
-            } else if(!onlyFlower && GraphAlgorithm.smartDisjointFVS(i, C.length-1, pathAntlerGraph) == null) {
-                addA(C[i]);
+            } else if(!onlyFlower) {
+                int[] fvs = GraphAlgorithm.smartDisjointFVS(i, C.length-1, antlerGraph);
+                if(fvs == null) addA(C[i]);
+                else aCount += fvs.length;
             }
         }
     }

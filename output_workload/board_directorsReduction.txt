@@ -1,0 +1,6 @@
+1Antler:                                           4
+1AntlerSize:                                       4
+1PathAntler:                                       2
+1PathAntlerSize:                                   2
+2AntlerHeuristicF:                                 1
+2AntlerHeuristicFSize:                             2

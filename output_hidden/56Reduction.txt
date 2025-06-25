@@ -1,0 +1,4 @@
+11AntlerHeuristicFFromSol:                         1
+11AntlerHeuristicFFromSolSize:                     11
+8AntlerHeuristicFlowerFromSol:                     1
+8AntlerHeuristicFlowerFromSolSize:                 8
