@@ -1,0 +1,12 @@
+1Antler:                                           105
+1AntlerSize:                                       105
+1PathAntler:                                       3
+1PathAntlerSize:                                   3
+2PathAntler:                                       33
+2PathAntlerSize:                                   50
+3PathAntler:                                       3
+3PathAntlerSize:                                   4
+4PathAntler:                                       2
+4PathAntlerSize:                                   2
+7PathAntler:                                       1
+7PathAntlerSize:                                   3

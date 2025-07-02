@@ -1,0 +1,10 @@
+10SingleTreeAntler:                                1
+10SingleTreeAntlerSize:                            10
+12PathAntler:                                      2
+12PathAntlerSize:                                  2
+1Antler:                                           1
+1AntlerSize:                                       1
+3AntlerHeuristicFFromSol:                          1
+3AntlerHeuristicFFromSolSize:                      3
+4AntlerHeuristicEdge:                              1
+4AntlerHeuristicEdgeSize:                          2

@@ -1,0 +1,4 @@
+5AntlerHeuristicF:                                 1
+5AntlerHeuristicFSize:                             5
+6AntlerHeuristicF:                                 1
+6AntlerHeuristicFSize:                             6

@@ -1,66 +1,28 @@
 package thesis.antlersolver.io;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
 
-import thesis.antlersolver.model.Graph;
+import fvs_wata_orz.Graph;
+import fvs_wata_orz.GraphIO;
+import thesis.antlersolver.model.Pair;
 
 public class FileReader {
-    public static Graph readGraph(String filePath) throws IOException {
+    public static Pair<Graph, String> readGraph(String filePath) throws IOException {
         File file = new File(filePath);
-
-        Scanner sc = new Scanner(file);
-
-        List<Integer> edgeS = new ArrayList<>();
-        List<Integer> edgeT = new ArrayList<>();
-        Set<Integer> nodes = new HashSet<>();
-
-        while (sc.hasNextLine()) {
-            char[] line = sc.nextLine().toCharArray();
-            if(line[0] == '#' || line[0] == '%') {
-                continue;
-            }
-            int x = 0;
-            int y = 0;
-            boolean second = false;
-            for(int i = 0; i < line.length; i++) {
-                if(line[i] == ' ') {
-                    second = true;
-                    continue;
-                }
-                if(!second) {
-                    x *= 10;
-                    x += line[i]-'0';
-                } else {
-                    y *= 10;
-                    y += line[i]-'0';
-                }
-            }
-            edgeS.add(x);
-            edgeT.add(y);
-            nodes.add(x);
-            nodes.add(y);
-        }
-        sc.close();
-
-        Graph graph = new Graph(file.getName().substring(0, file.getName().indexOf('.')));
-        for(Integer i : nodes) {
-            graph.addNode(i);
-        }
-        for(int i = 0; i < edgeS.size(); i++) {
-            graph.addEdge(edgeS.get(i), edgeT.get(i));
-        }
-        return graph;
+        GraphIO io = new GraphIO();
+        io.read(new FileInputStream(file));
+        String name = file.getName().substring(0, file.getName().lastIndexOf('.'));
+        return new Pair<Graph,String>(new Graph(io.adj), name);
     }
 
-    public static Graph[] readGraphDir(String dirPath) throws IOException {
+    public static Pair<Graph[], String[]> readGraphDir(String dirPath) throws IOException {
         List<Graph> graphs = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         File dir = new File(dirPath);
         if(!dir.isDirectory()) {
             throw new IOException("File "+dirPath+" is not a directory");
@@ -68,11 +30,15 @@ public class FileReader {
         File[] directoryListing = dir.listFiles();
         for (File child : directoryListing) {
             if(child.isDirectory()) {
-                graphs.addAll(Arrays.asList(readGraphDir(child.getAbsolutePath())));
+                Pair<Graph[], String[]> childGraphs = readGraphDir(child.getAbsolutePath());
+                graphs.addAll(Arrays.asList(childGraphs.a));
+                names.addAll(Arrays.asList(childGraphs.b));
             } else {
-                graphs.add(readGraph(child.getAbsolutePath()));
+                Pair<Graph, String> graph = readGraph(child.getAbsolutePath());
+                graphs.add(graph.a);
+                names.add(graph.b);
             }
         }
-        return graphs.toArray(new Graph[0]);
+        return new Pair<Graph[], String[]>(graphs.toArray(new Graph[0]), names.toArray(new String[0]));
     }
 }

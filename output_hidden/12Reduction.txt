@@ -1,0 +1,10 @@
+1Antler:                                           14
+1AntlerSize:                                       14
+2PathAntler:                                       3
+2PathAntlerSize:                                   6
+3Antler:                                           3
+3AntlerHeuristicEdgeFromSol:                       2
+3AntlerHeuristicEdgeFromSolSize:                   2
+3AntlerSize:                                       6
+3PathAntler:                                       2
+3PathAntlerSize:                                   6

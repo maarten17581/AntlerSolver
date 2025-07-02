@@ -1,0 +1,14 @@
+12PathAntler:                                      5
+12PathAntlerSize:                                  36
+2PathAntler:                                       2
+2PathAntlerSize:                                   4
+5PathAntler:                                       1
+5PathAntlerSize:                                   1
+6PathAntler:                                       2
+6PathAntlerSize:                                   7
+7AntlerHeuristicEdgeFromSol:                       1
+7AntlerHeuristicEdgeFromSolSize:                   1
+7PathAntler:                                       1
+7PathAntlerSize:                                   7
+9PathAntler:                                       9
+9PathAntlerSize:                                   30

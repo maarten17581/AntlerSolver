@@ -1,0 +1,2 @@
+6AntlerHeuristicFFromSol:                          1
+6AntlerHeuristicFFromSolSize:                      6

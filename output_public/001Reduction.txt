@@ -1,0 +1,6 @@
+1Antler:                                           24
+1AntlerSize:                                       24
+2AntlerHeuristicFFromSol:                          3
+2AntlerHeuristicFFromSolSize:                      6
+5PathAntler:                                       12
+5PathAntlerSize:                                   60
