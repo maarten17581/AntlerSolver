@@ -133,7 +133,7 @@ public class AntlerReduction {
             }
             for(int v : fvc.getC()) used[v] = true;
             for(int v : fvc.getF()) used[v] = true;
-                if(aSize >= 1) {
+            if(aSize >= 1) {
                 Statistics.getStat().count(fvc.getC().length+"Antler");
                 Statistics.getStat().count(fvc.getC().length+"AntlerSize", aSize);
             }

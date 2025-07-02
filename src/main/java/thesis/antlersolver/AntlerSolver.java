@@ -43,23 +43,23 @@ public class AntlerSolver {
 
         // initiallize one of the lambda expressions
         for(int i = 0; i < AntlerReduction.HeuristicType.values().length; i++) {
-        final int t = i;
-        antlerHeuristicReduce[i] = (Graph reductionGraph, int reductionK) -> {
-            for(int j = 1; j <= reductionK; j++) {
-                if(j == 1) {
-                    AntlerReduction.singleAntler(reductionGraph);
-                    continue;
+            final int t = i;
+            antlerHeuristicReduce[i] = (Graph reductionGraph, int reductionK) -> {
+                for(int j = 1; j <= reductionK; j++) {
+                    if(j == 1) {
+                        AntlerReduction.singleAntler(reductionGraph);
+                        continue;
+                    }
+                    if(AntlerReduction.kAntlerHeuristic(reductionGraph, j, false, true, 10,
+                            AntlerReduction.HeuristicType.values()[t])) {
+                        j = 0;
+                        continue;
+                    }
+                    if(AntlerReduction.kAntlerHeuristic(reductionGraph, j, false, false, 10,
+                        AntlerReduction.HeuristicType.values()[t])) j = 0;
                 }
-                if(AntlerReduction.kAntlerHeuristic(reductionGraph, j, false, true, 10,
-                        AntlerReduction.HeuristicType.values()[t])) {
-                    j = 0;
-                    continue;
-                }
-                if(AntlerReduction.kAntlerHeuristic(reductionGraph, j, false, false, 10,
-                    AntlerReduction.HeuristicType.values()[t])) j = 0;
-            }
-        };
-    }
+            };
+        }
         
         ReductionRoot.DEBUG = false;
         //Debug.silent = true;
