@@ -123,14 +123,15 @@ public class AntlerReduction {
         if(Thread.currentThread().isInterrupted()) return false;
         Arrays.sort(fvcs, (fvc1, fvc2) -> fvc2.getA().length - fvc1.getA().length);
         boolean[] used = new boolean[g.n];
-        for(FVC fvc : fvcs) {
-            int aSize = 0;
-            for(int v : fvc.getA()) {
-                if(used[v]) continue;
-                g.setS(v);
-                aSize++;
-                used[v] = true;
+        loop : for(FVC fvc : fvcs) {
+            for(int v : fvc.getC()) {
+                if(used[v]) continue loop;
             }
+            for(int v : fvc.getF()) {
+                if(used[v]) continue loop;
+            }
+            int aSize = fvc.getA().length;
+            for(int v : fvc.getA()) g.setS(v);
             for(int v : fvc.getC()) used[v] = true;
             for(int v : fvc.getF()) used[v] = true;
             if(aSize >= 1) {
@@ -148,14 +149,15 @@ public class AntlerReduction {
         if(Thread.currentThread().isInterrupted()) return false;
         Arrays.sort(pathAntlers, (path1, path2) -> path2.getA().length - path1.getA().length);
         boolean[] used = new boolean[g.n];
-        for(PathAntler path : pathAntlers) {
-            int aSize = 0;
-            for(int v : path.getA()) {
-                if(used[v]) continue;
-                g.setS(v);
-                aSize++;
-                used[v] = true;
+        loop : for(PathAntler path : pathAntlers) {
+            for(int v : path.getC()) {
+                if(used[v]) continue loop;
             }
+            for(int v : path.getP()) {
+                if(used[v]) continue loop;
+            }
+            int aSize = path.getA().length;
+            for(int v : path.getA()) g.setS(v);
             for(int v : path.getC()) used[v] = true;
             for(int v : path.getP()) used[v] = true;
             if(aSize >= 1) {
@@ -173,15 +175,15 @@ public class AntlerReduction {
         if(Thread.currentThread().isInterrupted()) return false;
         Arrays.sort(fvcs, (fvc1, fvc2) -> fvc2.getA().length - fvc1.getA().length);
         boolean[] used = new boolean[g.n];
-        for(FVC fvc : fvcs) {
-            int aSize = 0;
-            for(int v : fvc.getA()) {
-                if(used[v]) continue;
-                if(g.used[v] > 0) System.out.println(g.used[v]);
-                g.setS(v);
-                aSize++;
-                used[v] = true;
+        loop : for(FVC fvc : fvcs) {
+            for(int v : fvc.getC()) {
+                if(used[v]) continue loop;
             }
+            for(int v : fvc.getF()) {
+                if(used[v]) continue loop;
+            }
+            int aSize = fvc.getA().length;
+            for(int v : fvc.getA()) g.setS(v);
             for(int v : fvc.getC()) used[v] = true;
             for(int v : fvc.getF()) used[v] = true;
             if(aSize >= 1) {
@@ -222,9 +224,7 @@ public class AntlerReduction {
                     break;
             }
             if(fvc.getA().length == 0) continue;
-            for(int v : fvc.getA()) {
-                g.setS(v);
-            }
+            for(int v : fvc.getA()) g.setS(v);
             if(fromHeuristicSolve) {
                 Statistics.getStat().count(fvc.getC().length+"AntlerHeuristic"+type+"FromSol");
                 Statistics.getStat().count(fvc.getC().length+"AntlerHeuristic"+type+"FromSolSize", fvc.getA().length);

@@ -165,6 +165,7 @@ public class AntlerSolver {
 
     public static void solve(Graph[] graphs, String[] names, Integer[] order, String out) {
         ReductionRoot.DEBUG = false;
+        Statistics.reset();
         Debug.silent = true;
         int counter = 0;
         int kernelCounter = 0;
@@ -293,9 +294,9 @@ public class AntlerSolver {
         for(;;) {
             System.out.print("Kernel Stats: "+graph.n()+", "+graph.m()+", "+graph.k+"                                    \r");
             if(AntlerReduction.singleAntler(graph)) continue;
-            ReductionState state = timedReduction(graph, PathAntlerKernelHeuristic, maxKernelStepTime, pathAntlerHeuristicReduce);
+            ReductionState state = timedReduction(graph, AntlerKernelHeuristic, maxKernelStepTime, allAntlerHeuristicReduce);
             if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
-            state = timedReduction(graph, AntlerKernelHeuristic, maxKernelStepTime, allAntlerHeuristicReduce);
+            state = timedReduction(graph, PathAntlerKernelHeuristic, maxKernelStepTime, pathAntlerHeuristicReduce);
             if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
             state = timedReduction(graph, PathAntlerKernel, maxKernelStepTime, pathAntlerReduce);
             if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
@@ -421,11 +422,11 @@ public class AntlerSolver {
             for(;;) {
                 System.out.print("All: "+testGraph.n()+", "+testGraph.m()+", "+testGraph.k+" | Single Antler                                    \r");
                 if(AntlerReduction.singleAntler(testGraph)) continue;
-                System.out.print("All: "+testGraph.n()+", "+testGraph.m()+", "+testGraph.k+" | H Path Antler                                    \r");
-                ReductionState state = timedReduction(testGraph, PathAntlerKernelHeuristic, maxKernelStepTime, pathAntlerHeuristicReduce);
-                if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
                 System.out.print("All: "+testGraph.n()+", "+testGraph.m()+", "+testGraph.k+" | H Antler                                    \r");
-                state = timedReduction(testGraph, AntlerKernelHeuristic, maxKernelStepTime, allAntlerHeuristicReduce);
+                ReductionState state = timedReduction(testGraph, AntlerKernelHeuristic, maxKernelStepTime, allAntlerHeuristicReduce);
+                if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
+                System.out.print("All: "+testGraph.n()+", "+testGraph.m()+", "+testGraph.k+" | H Path Antler                                    \r");
+                state = timedReduction(testGraph, PathAntlerKernelHeuristic, maxKernelStepTime, pathAntlerHeuristicReduce);
                 if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
                 System.out.print("All: "+testGraph.n()+", "+testGraph.m()+", "+testGraph.k+" | Path Antler                                    \r");
                 state = timedReduction(testGraph, PathAntlerKernel, maxKernelStepTime, pathAntlerReduce);
@@ -457,11 +458,11 @@ public class AntlerSolver {
             for(;goLoop;) {
                 System.out.print("Combi: "+combiGraph.n()+", "+combiGraph.m()+", "+combiGraph.k+" | Single Antler                                    \r");
                 if(AntlerReduction.singleAntler(combiGraph)) continue;
-                System.out.print("Combi: "+combiGraph.n()+", "+combiGraph.m()+", "+combiGraph.k+" | H Path Antler                                    \r");
-                ReductionState state = timedReduction(combiGraph, PathAntlerKernelHeuristic, maxKernelStepTime, pathAntlerHeuristicReduce);
-                if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
                 System.out.print("Combi: "+combiGraph.n()+", "+combiGraph.m()+", "+combiGraph.k+" | H Antler                                    \r");
-                state = timedReduction(combiGraph, AntlerKernelHeuristic, maxKernelStepTime, allAntlerHeuristicReduce);
+                ReductionState state = timedReduction(combiGraph, AntlerKernelHeuristic, maxKernelStepTime, allAntlerHeuristicReduce);
+                if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
+                System.out.print("Combi: "+combiGraph.n()+", "+combiGraph.m()+", "+combiGraph.k+" | H Path Antler                                    \r");
+                state = timedReduction(combiGraph, PathAntlerKernelHeuristic, maxKernelStepTime, pathAntlerHeuristicReduce);
                 if(state == ReductionState.Reduced || state == ReductionState.TimeoutReduced) continue;
                 System.out.print("Combi: "+combiGraph.n()+", "+combiGraph.m()+", "+combiGraph.k+" | Path Antler                                    \r");
                 state = timedReduction(combiGraph, PathAntlerKernel, maxKernelStepTime, pathAntlerReduce);
