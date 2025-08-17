@@ -539,13 +539,13 @@ public class AntlerSolver {
 		System.out.println("AntlerSolver - an application that implements a new algorithm for\n" +
 				"solving the feedback vertex set problem on multigraphs.\n" +
 				"\n" +
-				"Usage: java -jar Antlersolver.jar <graphFile/graphDir> <outputDir> <solve/kernel>\n" +
+				"Usage: java -jar Antlersolver.jar <graphFile/graphDir> <outputDir> <solve/kernel/solve_and_kernel>\n" +
 				"\n" +
-				"graphFile/graphDir can be any .edges file or directory containing .edges files.\n" +
-				"Each .edges file consists of lines which are either comments (starting with # or %),\n" +
+				"graphFile/graphDir can be any .graph file or directory containing .graph files.\n" +
+				"Each .graph file consists of lines which are either comments (starting with # or %),\n" +
 				"or 2 space seperated numbers x y representing an edge between node x and node y.\n" +
                 "This field can be replaced with `!random=graphDir` for the algorithm to create random\n " +
-                "graphs that contain specific antler structures and make graph files in graphDir.\n" +
+                "graphs that contain specific antler structures and output these graphs as graph files in graphDir.\n" +
 				"\n" +
 				"outputDir is the directory where files for the minimum FVS per .edges file will be stored.\n" + 
                 "\n" +
