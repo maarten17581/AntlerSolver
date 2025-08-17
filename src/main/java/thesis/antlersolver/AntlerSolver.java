@@ -539,7 +539,7 @@ public class AntlerSolver {
 		System.out.println("AntlerSolver - an application that implements a new algorithm for\n" +
 				"solving the feedback vertex set problem on multigraphs.\n" +
 				"\n" +
-				"Usage: java -jar Antlersolver.jar <graphFile/graphDir> <outputDir> <solve/kernel/solve_and_kernel>\n" +
+				"Usage: java -jar -Xss2048m .\\target\\AntlerSolver-1.0-SNAPSHOT.jar <graphFile/graphDir> <outputDir> <solve/kernel/solve_and_kernel>\n" +
 				"\n" +
 				"graphFile/graphDir can be any .graph file or directory containing .graph files.\n" +
 				"Each .graph file consists of lines which are either comments (starting with # or %),\n" +
